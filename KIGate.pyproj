@@ -31,6 +31,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include=".env" />
+    <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
     <Content Include="agents\exam-content-agent.yml" />
     <Content Include="agents\text-optimization-agent.yml" />
@@ -41,15 +42,18 @@
     <Content Include="docs\API_Wiki_Documentation.md" />
     <Content Include="docs\GITHUB_ISSUE_ENDPOINT.md" />
     <Content Include="docs\README.md" />
+    <Content Include="IMPLEMENTATION_SUMMARY.md" />
     <Content Include="PDF_AGENT_ENDPOINT.md" />
     <Content Include="pytest.ini" />
     <Content Include="QUICK_START_AGENTS.md" />
+    <Content Include="RATE_LIMITING.md" />
     <Content Include="README.md" />
     <Content Include="README_AGENTS.md" />
     <Content Include="README_Claude_API.md" />
     <Content Include="README_Gemini_API.md" />
     <Content Include="README_OpenAI_API.md" />
     <Content Include="requirements.txt" />
+    <Content Include="static\css\custom-theme.css" />
     <Content Include="templates\admin_login.html" />
     <Content Include="templates\agents.html" />
     <Content Include="templates\agent_form.html" />
@@ -62,6 +66,7 @@
     <Content Include="templates\jobs.html" />
     <Content Include="templates\repositories.html" />
     <Content Include="templates\users.html" />
+    <Content Include="UIS.KIGate.pyproj.user" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="docs\" />
@@ -69,8 +74,11 @@
     <Folder Include="controller\" />
     <Folder Include="agents\" />
     <Folder Include="service\" />
+    <Folder Include="static\" />
+    <Folder Include="static\css\" />
     <Folder Include="templates\" />
     <Folder Include="templates\mail\" />
+    <Folder Include="utils\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="admin_auth.py" />
@@ -92,6 +100,8 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="database.py" />
+    <Compile Include="demo_application_users.py" />
+    <Compile Include="logging_config.py" />
     <Compile Include="main.py">
       <SubType>Code</SubType>
     </Compile>
@@ -143,14 +153,22 @@
     <Compile Include="test_integration_ai_agent.py" />
     <Compile Include="test_mail_functionality.py" />
     <Compile Include="test_mail_integration.py" />
+    <Compile Include="test_manual_rate_limiting.py" />
     <Compile Include="test_openai_controller.py" />
     <Compile Include="test_openai_integration.py" />
     <Compile Include="test_pdf_agent_execution.py" />
     <Compile Include="test_pdf_integration.py" />
+    <Compile Include="test_provider_service.py" />
+    <Compile Include="test_rate_limiting.py" />
+    <Compile Include="test_rate_limiting_integration.py" />
     <Compile Include="test_repository.py" />
     <Compile Include="test_repository_improvements.py" />
     <Compile Include="test_security_improvements.py" />
     <Compile Include="test_sync_improvements.py" />
+    <Compile Include="test_user_roles.py" />
+    <Compile Include="utils\request_utils.py" />
+    <Compile Include="utils\token_counter.py" />
+    <Compile Include="utils\__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">

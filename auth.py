@@ -53,7 +53,10 @@ async def authenticate_user_by_token(
                 headers={"Retry-After": "60"}
             )
         
-        await db.commit()  # Commit the last_login update
+        # Increment request counter after successful authentication
+        user.increment_request_count()
+        
+        await db.commit()  # Commit the last_login update and request counter
         return user
         
     except HTTPException:

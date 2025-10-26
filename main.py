@@ -584,6 +584,10 @@ async def execute_agent_pdf(
                     # Send request to AI provider
                     ai_result = await send_ai_request(ai_request, provider)
                     
+                    # Record the request and token usage for rate limiting (per chunk)
+                    from service.rate_limit_service import RateLimitService
+                    await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
+                    
                     # Calculate duration in milliseconds
                     duration_ms = int((time.time() - start_time) * 1000)
                     
@@ -812,6 +816,10 @@ async def execute_agent_docx(
                 try:
                     # Send request to AI provider
                     ai_result = await send_ai_request(ai_request, provider)
+                    
+                    # Record the request and token usage for rate limiting (per chunk)
+                    from service.rate_limit_service import RateLimitService
+                    await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
                     
                     # Calculate duration in milliseconds
                     duration_ms = int((time.time() - start_time) * 1000)

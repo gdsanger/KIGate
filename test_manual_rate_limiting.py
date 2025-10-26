@@ -22,13 +22,6 @@ async def create_test_user():
     print("Creating test user with low rate limits (RPM=3, TPM=1000)...")
     
     async with AsyncSessionLocal() as session:
-        # Check if test user already exists
-        existing = await UserService.get_user(session, "rate-limit-test-user")
-        if existing:
-            print(f"Test user already exists: {existing.client_id}")
-            print("Delete existing user from database or use a different client_id")
-            return None
-        
         user_data = UserCreate(
             name="Rate Limit Test User",
             email="ratelimit@test.com",
@@ -70,15 +63,18 @@ async def test_rate_limits():
     print("="*70)
     print("\n1. Start the KIGate server:")
     print("   python main.py")
-    print("\n2. Make requests to authenticated endpoints using the credentials above:")
-    print(f"   curl -X GET http://localhost:8000/secure-endpoint \\")
-    print(f"     -H 'Authorization: Bearer {user.client_id}:{user.client_secret}'")
-    print("\n3. After 3 requests, you should get HTTP 429 (Too Many Requests)")
-    print("\n4. Wait 60 seconds and try again - limits will reset\n")
+    print("\n2. Test the health endpoint (not rate limited):")
+    print(f"   curl http://localhost:8000/health")
+    print("\n3. Make requests to rate-limited endpoints using the credentials above:")
+    print(f"   curl -X POST http://localhost:8000/api/openai \\")
+    print(f"     -H 'Authorization: Bearer {user.client_id}:{user.client_secret}' \\")
+    print(f"     -H 'Content-Type: application/json' \\")
+    print(f"     -d '{{\"job_id\":\"test-1\",\"user_id\":\"test\",\"model\":\"gpt-3.5-turbo\",\"message\":\"Hello\"}}'")
+    print("\n4. After 3 requests, you should get HTTP 429 (Too Many Requests)")
+    print("\n5. Wait 60 seconds and try again - limits will reset\n")
     
-    print("Example using httpie:")
-    print(f"  http GET localhost:8000/secure-endpoint \\")
-    print(f"    'Authorization:Bearer {user.client_id}:{user.client_secret}'")
+    print("Alternative: Test with /health endpoint (requires API key):")
+    print(f"  curl 'http://localhost:8000/health?api_key={user.client_id}:{user.client_secret}'")
     
     print("\n" + "="*70 + "\n")
 

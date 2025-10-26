@@ -1196,9 +1196,6 @@ async def get_active_repositories(
 # Provider Management Routes
 @admin_router.get("/providers", response_class=HTMLResponse)
 async def admin_providers(
-# Settings Management Routes
-@admin_router.get("/settings", response_class=HTMLResponse)
-async def admin_settings(
     request: Request,
     db: AsyncSession = Depends(get_async_session),
     message: Optional[str] = None,
@@ -1211,6 +1208,20 @@ async def admin_settings(
     return templates.TemplateResponse("providers.html", {
         "request": request,
         "providers": providers,
+        "message": message,
+        "message_type": message_type
+    })
+
+
+# Settings Management Routes
+@admin_router.get("/settings", response_class=HTMLResponse)
+async def admin_settings(
+    request: Request,
+    db: AsyncSession = Depends(get_async_session),
+    message: Optional[str] = None,
+    message_type: Optional[str] = None,
+    admin_user: str = Depends(get_admin_user)
+):
     """Settings management page"""
     from service.settings_service import SettingsService
     settings = await SettingsService.get_all_settings(db)
@@ -1306,6 +1317,16 @@ async def update_provider(
         
         return RedirectResponse(
             url=f"/admin/providers?message=Provider wurde erfolgreich aktualisiert&message_type=success",
+            status_code=303
+        )
+    except Exception as e:
+        logger.error(f"Error updating provider: {str(e)}")
+        return RedirectResponse(
+            url=f"/admin/providers?message=Fehler beim Aktualisieren des Providers&message_type=danger",
+            status_code=303
+        )
+
+
 @admin_router.post("/settings/update")
 async def update_settings(
     request: Request,
@@ -1360,8 +1381,6 @@ async def update_settings(
         )
     except Exception as e:
         await db.rollback()
-        return RedirectResponse(
-            url=f"/admin/providers?message={quote(f'Fehler beim Aktualisieren des Providers: {str(e)}')}&message_type=danger",
         logger.error(f"Error updating settings: {str(e)}")
         return RedirectResponse(
             url=f"/admin/settings?message={quote(f'Fehler beim Aktualisieren der Einstellungen: {str(e)}')}&message_type=danger",

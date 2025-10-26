@@ -20,24 +20,44 @@ async def send_ai_request(request: aiapirequest, provider: str) -> aiapiresult:
     Returns:
         aiapiresult: The result from the AI provider
     """
-    logger.info(f"Routing AI request to provider: {provider}")
+    # Normalize provider name to handle variations
+    # Map common provider display names to their canonical lowercase identifiers
+    provider_mapping = {
+        "google gemini": "gemini",
+        "gemini": "gemini",
+        "openai": "openai",
+        "claude": "claude",
+        "anthropic claude": "claude",
+    }
+    
+    # Normalize: lowercase and strip whitespace
+    normalized_provider = provider.lower().strip()
+    
+    # Check if it matches any known mapping
+    canonical_provider = provider_mapping.get(normalized_provider, normalized_provider)
+    
+    # Log the provider mapping if a transformation occurred
+    if canonical_provider != provider:
+        logger.info(f"Normalized provider '{provider}' to '{canonical_provider}'")
+    
+    logger.info(f"Routing AI request to provider: {canonical_provider}")
     
     try:
-        if provider.lower() == "openai":
+        if canonical_provider == "openai":
             from controller.api_openai import process_openai_request
             return await process_openai_request(request)
         
-        elif provider.lower() == "claude":
+        elif canonical_provider == "claude":
             from controller.api_claude import process_claude_request
             return await process_claude_request(request)
         
-        elif provider.lower() == "gemini":
+        elif canonical_provider == "gemini":
             from controller.api_gemini import process_gemini_request
             return await process_gemini_request(request)
         
         else:
             # Unsupported provider
-            error_msg = f"Unsupported AI provider: {provider}"
+            error_msg = f"Unsupported AI provider: {provider} (normalized to: {canonical_provider})"
             logger.error(f"Error for job_id {request.job_id}: {error_msg}")
             
             return aiapiresult(

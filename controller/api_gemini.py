@@ -11,7 +11,6 @@ import google.generativeai as genai
 
 from model.aiapirequest import aiapirequest
 from model.aiapiresult import aiapiresult
-from config import GEMINI_API_KEY
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -29,6 +28,7 @@ class GeminiController:
             api_key: Optional API key to use (if not provided, falls back to environment variable)
         """
         import os
+        from config import GEMINI_API_KEY
         self.client = None
         
         # Use provided API key or fallback to environment variable

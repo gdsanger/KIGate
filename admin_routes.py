@@ -1254,3 +1254,44 @@ async def update_settings(
             status_code=303
         )
 
+
+# AI Audit Log Routes
+@admin_router.get("/audit-logs", response_class=HTMLResponse)
+async def admin_audit_logs(
+    request: Request,
+    page: int = 1,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """AI Audit Log page with pagination"""
+    from service.ai_audit_log_service import AIAuditLogService
+    
+    try:
+        # Ensure page is at least 1
+        page = max(1, page)
+        per_page = 50
+        
+        # Get logs with pagination
+        logs, total_count = await AIAuditLogService.get_logs_paginated(db, page=page, per_page=per_page)
+        
+        # Calculate pagination info
+        total_pages = (total_count + per_page - 1) // per_page
+        has_prev = page > 1
+        has_next = page < total_pages
+        
+        return templates.TemplateResponse("audit_logs.html", {
+            "request": request,
+            "logs": logs,
+            "current_page": page,
+            "total_pages": total_pages,
+            "total_count": total_count,
+            "has_prev": has_prev,
+            "has_next": has_next,
+            "prev_page": page - 1 if has_prev else None,
+            "next_page": page + 1 if has_next else None,
+        })
+        
+    except Exception as e:
+        logger.error(f"Error loading audit logs page: {str(e)}")
+        raise HTTPException(status_code=500, detail="Fehler beim Laden der Audit Logs")
+

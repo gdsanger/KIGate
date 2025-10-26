@@ -8,6 +8,7 @@ Centralized agent-driven API Gateway for AI with integrated user management syst
 - 🎛️ **Admin Panel** - Modern Bootstrap-based web interface  
 - 👥 **User Management** - Complete CRUD operations
 - 🤖 **Agent Management** - YAML-based AI agent configuration and management
+- 🔌 **Provider Configuration** - Dynamic AI provider and model management (OpenAI, Gemini, Claude, Ollama)
 - 🛡️ **Authentication** - Bearer token and API key authentication
 - 🔒 **Security** - 128-bit client secrets, user activation/deactivation
 
@@ -32,7 +33,10 @@ uvicorn main:app --reload
 - **Dashboard**: http://localhost:8000/admin
 - **User Management**: http://localhost:8000/admin/users
 - **Agent Management**: http://localhost:8000/admin/agents
+- **Provider Configuration**: http://localhost:8000/admin/providers
 - **API Documentation**: http://localhost:8000/docs
+
+For detailed information on provider configuration, see [Provider Configuration Guide](docs/PROVIDER_CONFIGURATION.md).
 
 ### API Authentication
 

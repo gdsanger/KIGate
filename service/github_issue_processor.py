@@ -8,6 +8,7 @@ from typing import Optional
 from model.github_issue import ProcessedIssueContent, IssueType
 from model.aiapirequest import aiapirequest
 from service.ai_service import send_ai_request
+from database import get_async_session
 
 logger = logging.getLogger(__name__)
 
@@ -72,8 +73,10 @@ Input text to process:"""
                 message=combined_prompt
             )
             
-            # Send to AI service
-            result = await send_ai_request(ai_request, provider)
+            # Send to AI service with database session
+            async for db in get_async_session():
+                result = await send_ai_request(ai_request, provider, db)
+                break  # Exit after first iteration
             
             if not result.success:
                 return None

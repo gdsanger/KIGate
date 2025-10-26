@@ -3,19 +3,21 @@ AI Service for routing requests to different AI providers
 """
 import logging
 from typing import Optional
+from sqlalchemy.ext.asyncio import AsyncSession
 from model.aiapirequest import aiapirequest
 from model.aiapiresult import aiapiresult
 
 logger = logging.getLogger(__name__)
 
 
-async def send_ai_request(request: aiapirequest, provider: str) -> aiapiresult:
+async def send_ai_request(request: aiapirequest, provider: str, db: Optional[AsyncSession] = None) -> aiapiresult:
     """
     Send AI request to the specified provider
     
     Args:
         request: The aiapirequest object
         provider: Provider name (openai, claude, gemini, etc.)
+        db: Optional database session to fetch provider configuration
         
     Returns:
         aiapiresult: The result from the AI provider
@@ -42,18 +44,46 @@ async def send_ai_request(request: aiapirequest, provider: str) -> aiapiresult:
     
     logger.info(f"Routing AI request to provider: {canonical_provider}")
     
+    # Fetch provider configuration from database if db session is provided
+    api_key = None
+    org_id = None
+    
+    if db:
+        try:
+            from service.provider_service import ProviderService
+            from sqlalchemy import select
+            from model.provider import Provider
+            
+            # Find active provider by provider_type
+            result = await db.execute(
+                select(Provider).where(
+                    Provider.provider_type == canonical_provider,
+                    Provider.is_active == True
+                )
+            )
+            provider_entity = result.scalar_one_or_none()
+            
+            if provider_entity:
+                api_key = provider_entity.api_key
+                org_id = provider_entity.organization_id
+                logger.info(f"Using provider configuration from database for '{canonical_provider}' (ID: {provider_entity.id})")
+            else:
+                logger.warning(f"No active provider found in database for type '{canonical_provider}', falling back to environment variables")
+        except Exception as e:
+            logger.warning(f"Error fetching provider from database: {str(e)}, falling back to environment variables")
+    
     try:
         if canonical_provider == "openai":
             from controller.api_openai import process_openai_request
-            return await process_openai_request(request)
+            return await process_openai_request(request, api_key=api_key, org_id=org_id)
         
         elif canonical_provider == "claude":
             from controller.api_claude import process_claude_request
-            return await process_claude_request(request)
+            return await process_claude_request(request, api_key=api_key)
         
         elif canonical_provider == "gemini":
             from controller.api_gemini import process_gemini_request
-            return await process_gemini_request(request)
+            return await process_gemini_request(request, api_key=api_key)
         
         else:
             # Unsupported provider

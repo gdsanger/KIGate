@@ -31,9 +31,10 @@ class ClaudeController:
         Args:
             strict_mode: If True, raises ValueError when API key is missing.
                         If False, allows initialization but requests will fail gracefully.
-            api_key: Override API key (defaults to config value)
+            api_key: Optional API key to use (if not provided, falls back to environment variable)
         """
         import os
+        # Use provided API key or fallback to environment variable
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY", "") or ANTHROPIC_API_KEY
         
         if not self.api_key:
@@ -196,24 +197,37 @@ class ClaudeController:
 _claude_controller: Optional[ClaudeController] = None
 
 
-def get_claude_controller() -> ClaudeController:
-    """Get or create the Claude controller singleton instance"""
+def get_claude_controller(api_key: Optional[str] = None) -> ClaudeController:
+    """
+    Get or create the Claude controller singleton instance
+    
+    Args:
+        api_key: Optional API key to use for initialization
+        
+    Note: If api_key is provided, a new controller instance will be created
+    """
     global _claude_controller
+    
+    # If api_key is provided, always create a new instance
+    if api_key:
+        return ClaudeController(strict_mode=False, api_key=api_key)
+    
+    # Otherwise use singleton with non-strict mode for production
     if _claude_controller is None:
-        # Use non-strict mode for production to handle missing API keys gracefully
         _claude_controller = ClaudeController(strict_mode=False)
     return _claude_controller
 
 
-async def process_claude_request(request: aiapirequest) -> aiapiresult:
+async def process_claude_request(request: aiapirequest, api_key: Optional[str] = None) -> aiapiresult:
     """
     Convenience function to process Claude requests
     
     Args:
         request: The aiapirequest object
+        api_key: Optional API key to use (if not provided, uses environment variable)
         
     Returns:
         aiapiresult: The processed result
     """
-    controller = get_claude_controller()
+    controller = get_claude_controller(api_key)
     return await controller.process_request(request)

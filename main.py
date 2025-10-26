@@ -355,7 +355,7 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
             
             try:
                 # Send request to AI provider
-                ai_result = await send_ai_request(ai_request, agent_request.provider)
+                ai_result = await send_ai_request(ai_request, agent_request.provider, db)
                 
                 # Record the request and token usage for rate limiting
                 await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
@@ -680,7 +680,7 @@ async def execute_agent_pdf(
                 
                 try:
                     # Send request to AI provider
-                    ai_result = await send_ai_request(ai_request, provider)
+                    ai_result = await send_ai_request(ai_request, provider, db)
                     
                     # Record the request and token usage for rate limiting (per chunk)
                     from service.rate_limit_service import RateLimitService
@@ -716,7 +716,7 @@ async def execute_agent_pdf(
         # Merge results from all chunks
         if len(text_chunks) > 1:
             # Use AI to merge results when we have multiple chunks
-            merged_result = await _merge_results_with_ai(chunk_results, agent, provider, model, user_id)
+            merged_result = await _merge_results_with_ai(chunk_results, agent, provider, model, user_id, db)
         else:
             merged_result = chunk_results[0] if chunk_results else "No results generated"
         
@@ -751,7 +751,7 @@ async def execute_agent_pdf(
         )
 
 
-async def _merge_results_with_ai(chunk_results: List[str], agent, provider: str, model: str, user_id: str) -> str:
+async def _merge_results_with_ai(chunk_results: List[str], agent, provider: str, model: str, user_id: str, db: Optional[AsyncSession] = None) -> str:
     """
     Use AI to intelligently merge results from multiple chunks
     """
@@ -790,7 +790,7 @@ Format your response as a well-structured report."""
         )
         
         # Send to AI service
-        merge_result = await send_ai_request(merge_request, provider)
+        merge_result = await send_ai_request(merge_request, provider, db)
         
         if merge_result.success:
             return merge_result.content
@@ -921,7 +921,7 @@ async def execute_agent_docx(
                 
                 try:
                     # Send request to AI provider
-                    ai_result = await send_ai_request(ai_request, provider)
+                    ai_result = await send_ai_request(ai_request, provider, db)
                     
                     # Record the request and token usage for rate limiting (per chunk)
                     from service.rate_limit_service import RateLimitService
@@ -957,7 +957,7 @@ async def execute_agent_docx(
         # Merge results from all chunks
         if len(text_chunks) > 1:
             # Use AI to merge results when we have multiple chunks
-            merged_result = await _merge_docx_results_with_ai(chunk_results, agent, provider, model, user_id)
+            merged_result = await _merge_docx_results_with_ai(chunk_results, agent, provider, model, user_id, db)
         else:
             merged_result = chunk_results[0] if chunk_results else "No results generated"
         
@@ -992,7 +992,7 @@ async def execute_agent_docx(
         )
 
 
-async def _merge_docx_results_with_ai(chunk_results: List[str], agent, provider: str, model: str, user_id: str) -> str:
+async def _merge_docx_results_with_ai(chunk_results: List[str], agent, provider: str, model: str, user_id: str, db: Optional[AsyncSession] = None) -> str:
     """
     Use AI to intelligently merge results from multiple DOCX chunks
     """
@@ -1031,7 +1031,7 @@ Format your response as a well-structured report."""
         )
         
         # Send to AI service
-        merge_result = await send_ai_request(merge_request, provider)
+        merge_result = await send_ai_request(merge_request, provider, db)
         
         if merge_result.success:
             return merge_result.content

@@ -30,7 +30,10 @@ class UserService:
             name=user_data.name,
             email=user_data.email,
             role=user_data.role,
-            is_active=user_data.is_active
+            is_active=user_data.is_active,
+            rpm_limit=user_data.rpm_limit,
+            tpm_limit=user_data.tpm_limit
+
         )
         
         # Generate client secret

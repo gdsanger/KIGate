@@ -22,6 +22,7 @@ class User(Base):
     client_secret: Mapped[str] = mapped_column(String(256), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[Optional[str]] = mapped_column(String(200), nullable=True, unique=True)
+    role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_login: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -82,6 +83,7 @@ class UserCreate(BaseModel):
     """Model for creating a user"""
     name: str = Field(..., min_length=1, max_length=100)
     email: Optional[str] = Field(None, max_length=200)
+    role: str = Field(default="user", pattern="^(admin|user)$")
     is_active: bool = True
     rpm_limit: int = Field(default=20, ge=1)
     tpm_limit: int = Field(default=50000, ge=1)
@@ -93,6 +95,7 @@ class UserUpdate(BaseModel):
     """Model for updating a user"""
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     email: Optional[str] = Field(None, max_length=200)
+    role: Optional[str] = Field(None, pattern="^(admin|user)$")
     is_active: Optional[bool] = None
     rpm_limit: Optional[int] = Field(None, ge=1)
     tpm_limit: Optional[int] = Field(None, ge=1)
@@ -105,6 +108,7 @@ class UserResponse(BaseModel):
     client_id: str
     name: str
     email: Optional[str]
+    role: str
     is_active: bool
     created_at: datetime
     last_login: Optional[datetime]

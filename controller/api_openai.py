@@ -121,21 +121,30 @@ class OpenAIController:
                 max_tokens=None,  # Let OpenAI decide
             )
             
-            # Extract content from response
+            # Extract content and token usage from response
             if response.choices and len(response.choices) > 0:
                 content = response.choices[0].message.content
                 if content is None:
                     content = ""
                 
+                # Get token usage if available
+                tokens_used = 0
+                if hasattr(response, 'usage') and response.usage:
+                    tokens_used = response.usage.total_tokens
+                    logger.debug(f"Token usage for job_id {request.job_id}: {tokens_used}")
+                
                 logger.info(f"Successfully received response for job_id: {request.job_id}")
                 
-                return aiapiresult(
+                result = aiapiresult(
                     job_id=request.job_id,
                     user_id=request.user_id,
                     content=content,
                     success=True,
                     error_message=None
                 )
+                # Attach token usage for rate limiting
+                result.tokens_used = tokens_used
+                return result
             else:
                 error_msg = "No response choices returned from OpenAI API"
                 logger.error(f"Error for job_id {request.job_id}: {error_msg}")

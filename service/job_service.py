@@ -28,7 +28,9 @@ class JobService:
                 user_id=job_data.user_id,
                 provider=job_data.provider,
                 model=job_data.model,
-                status=job_data.status or "created"
+                status=job_data.status or "created",
+                client_ip=job_data.client_ip if hasattr(job_data, 'client_ip') else None,
+                token_count=job_data.token_count if hasattr(job_data, 'token_count') else None
             )
             
             db.add(db_job)
@@ -96,6 +98,26 @@ class JobService:
             
         except Exception as e:
             logger.error(f"Error updating job {job_id} duration: {str(e)}")
+            return False
+    
+    @classmethod
+    async def update_job_token_count(cls, db: AsyncSession, job_id: str, token_count: int) -> bool:
+        """Update job token count"""
+        try:
+            result = await db.execute(select(Job).where(Job.id == job_id))
+            job = result.scalar_one_or_none()
+            
+            if job:
+                job.token_count = token_count
+                await db.flush()
+                logger.info(f"Updated job {job_id} token count to {token_count}")
+                return True
+            
+            logger.warning(f"Job {job_id} not found for token count update")
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error updating job {job_id} token count: {str(e)}")
             return False
 
     @classmethod

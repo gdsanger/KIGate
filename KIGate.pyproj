@@ -64,7 +64,9 @@
     <Content Include="templates\dashboard.html" />
     <Content Include="templates\github_issues.html" />
     <Content Include="templates\jobs.html" />
+    <Content Include="templates\providers.html" />
     <Content Include="templates\repositories.html" />
+    <Content Include="templates\settings.html" />
     <Content Include="templates\users.html" />
     <Content Include="UIS.KIGate.pyproj.user" />
   </ItemGroup>
@@ -114,13 +116,16 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="model\ai_agent_generator.py" />
+    <Compile Include="model\ai_audit_log.py" />
     <Compile Include="model\application_user.py" />
     <Compile Include="model\docx_agent_execution.py" />
     <Compile Include="model\github_issue.py" />
     <Compile Include="model\github_issue_record.py" />
     <Compile Include="model\job.py" />
     <Compile Include="model\pdf_agent_execution.py" />
+    <Compile Include="model\provider.py" />
     <Compile Include="model\repository.py" />
+    <Compile Include="model\settings.py" />
     <Compile Include="model\user.py">
       <SubType>Code</SubType>
     </Compile>
@@ -135,7 +140,10 @@
     <Compile Include="service\graph_service.py" />
     <Compile Include="service\job_service.py" />
     <Compile Include="service\pdf_service.py" />
+    <Compile Include="service\provider_service.py" />
+    <Compile Include="service\rate_limit_service.py" />
     <Compile Include="service\repository_service.py" />
+    <Compile Include="service\settings_service.py" />
     <Compile Include="service\user_service.py" />
     <Compile Include="service\__init__.py" />
     <Compile Include="test_admin_auth.py" />

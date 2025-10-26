@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-robot"></i> AI-generierter Agent Review
+    </h1>
+    <div>
+        <a href="/admin/agents" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Zur Agent-Übersicht
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i>
+    <strong>Review erforderlich:</strong> Überprüfen Sie die AI-generierten Einstellungen und nehmen Sie bei Bedarf Anpassungen vor.
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-check-circle"></i> Generierter Agent: {{ generated_config.name }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/admin/agents/ai-review" id="reviewForm">
+                    <input type="hidden" name="user_description" value="{{ user_description }}">
+                    <input type="hidden" name="action" id="actionInput" value="">
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Agent Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ generated_config.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Beschreibung *</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required>{{ generated_config.description }}</textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Rolle *</label>
+                                <textarea class="form-control" id="role" name="role" rows="3" required>{{ generated_config.role }}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="provider" class="form-label">Provider *</label>
+                                <select class="form-select" id="provider" name="provider" required>
+                                    <option value="openai" {% if generated_config.provider == "openai" %}selected{% endif %}>OpenAI</option>
+                                    <option value="claude" {% if generated_config.provider == "claude" %}selected{% endif %}>Claude</option>
+                                    <option value="anthropic" {% if generated_config.provider == "anthropic" %}selected{% endif %}>Anthropic</option>
+                                    <option value="gemini" {% if generated_config.provider == "gemini" %}selected{% endif %}>Gemini</option>
+                                    <option value="azure" {% if generated_config.provider == "azure" %}selected{% endif %}>Azure</option>
+                                    <option value="local" {% if generated_config.provider == "local" %}selected{% endif %}>Local</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="model" class="form-label">Modell *</label>
+                                <input type="text" class="form-control" id="model" name="model" 
+                                       value="{{ generated_config.model }}" 
+                                       placeholder="z.B. gpt-4" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="task" class="form-label">Aufgabe/System Prompt *</label>
+                        <textarea class="form-control" id="task" name="task" rows="8" required>{{ generated_config.task }}</textarea>
+                        <div class="form-text">Dies wird als System-Prompt für den Agenten verwendet.</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="parameters" class="form-label">Parameter (YAML)</label>
+                        <textarea class="form-control" id="parameters" name="parameters" rows="10">{{ parameters_yaml if parameters_yaml else '' }}</textarea>
+                        <div class="form-text">Optional: Parameter im YAML-Format. Diese wurden automatisch basierend auf der Beschreibung generiert.</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-warning" onclick="regenerateAgent()">
+                            <i class="bi bi-arrow-clockwise"></i> Neu generieren
+                        </button>
+                        <button type="button" class="btn btn-success btn-lg" onclick="acceptAgent()">
+                            <i class="bi bi-check-circle"></i> Agent erstellen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-chat-quote"></i> Ihre ursprüngliche Beschreibung
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="bg-light p-3 rounded">
+                    <em>"{{ user_description }}"</em>
+                </div>
+            </div>
+        </div>
+        
+        {% if generated_config.confidence_score %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-speedometer2"></i> AI Confidence Score
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-2">
+                    <div class="progress-bar 
+                        {% if generated_config.confidence_score >= 0.8 %}bg-success
+                        {% elif generated_config.confidence_score >= 0.6 %}bg-warning
+                        {% else %}bg-danger{% endif %}"
+                        role="progressbar" 
+                        style="width: {{ (generated_config.confidence_score * 100)|round }}%">
+                        {{ (generated_config.confidence_score * 100)|round }}%
+                    </div>
+                </div>
+                <div class="small text-muted">
+                    {% if generated_config.confidence_score >= 0.8 %}
+                        <i class="bi bi-check-circle text-success"></i> Hohe Konfidenz - Die AI ist sehr sicher bei dieser Konfiguration.
+                    {% elif generated_config.confidence_score >= 0.6 %}
+                        <i class="bi bi-exclamation-triangle text-warning"></i> Mittlere Konfidenz - Überprüfen Sie die Einstellungen sorgfältig.
+                    {% else %}
+                        <i class="bi bi-x-circle text-danger"></i> Niedrige Konfidenz - Erwägen Sie eine Neugenerierung mit detaillierterer Beschreibung.
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-gear"></i> Was können Sie tun?
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-pencil text-primary me-2 mt-1"></i>
+                        <div class="small">
+                            <strong>Bearbeiten:</strong> Sie können alle Felder direkt in diesem Formular anpassen.
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-check-circle text-success me-2 mt-1"></i>
+                        <div class="small">
+                            <strong>Akzeptieren:</strong> Erstellt den Agenten mit den aktuellen Einstellungen.
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-arrow-clockwise text-warning me-2 mt-1"></i>
+                        <div class="small">
+                            <strong>Neu generieren:</strong> Startet eine neue AI-Generierung. Passen Sie Ihre ursprüngliche Beschreibung an für bessere Ergebnisse.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function acceptAgent() {
+    document.getElementById('actionInput').value = 'accept';
+    document.getElementById('reviewForm').submit();
+}
+
+function regenerateAgent() {
+    if (confirm('Möchten Sie eine neue AI-Generierung starten? Ihre aktuellen Änderungen gehen verloren, aber Sie können Ihre ursprüngliche Beschreibung anpassen.')) {
+        document.getElementById('actionInput').value = 'regenerate';
+        document.getElementById('reviewForm').submit();
+    }
+}
+
+// Auto-resize textareas
+document.addEventListener('DOMContentLoaded', function() {
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        // Initial resize
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    });
+});
+
+// Validate form before submission
+document.getElementById('reviewForm').addEventListener('submit', function(e) {
+    const requiredFields = this.querySelectorAll('input[required], textarea[required], select[required]');
+    let isValid = true;
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            field.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('Bitte füllen Sie alle Pflichtfelder aus.');
+    }
+});
+</script>
+{% endblock %}

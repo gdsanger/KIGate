@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">GitHub Issues</h1>
+</div>
+
+<!-- Display messages -->
+{% if message %}
+    <div class="alert alert-{{ message_type if message_type else 'info' }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+
+<!-- Create GitHub Issue Form -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Neues GitHub Issue erstellen</h5>
+            </div>
+            <div class="card-body">
+                <form action="/admin/github-issues/create" method="post">
+                    <div class="mb-3">
+                        <label for="repository" class="form-label">Repository</label>
+                        <select class="form-select" id="repository" name="repository" required>
+                            <option value="">Repository auswählen...</option>
+                        </select>
+                        <div class="form-text">
+                            Repositories können im <a href="/admin/repositories" target="_blank">Repository Management</a> verwaltet werden.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="issue_text" class="form-label">Issue-Text</label>
+                        <textarea class="form-control" id="issue_text" name="issue_text" rows="8" 
+                                  placeholder="Beschreibung des Issues... Der Text wird automatisch durch KI verbessert." required></textarea>
+                        <div class="form-text">
+                            Der Text wird automatisch durch KI verbessert, kategorisiert und ein Titel generiert.
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Issue erstellen
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Information -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Hilfe</h6>
+            </div>
+            <div class="card-body">
+                <h6>Repository-Auswahl</h6>
+                <p class="small">Wählen Sie ein Repository aus der Dropdown-Liste aus.</p>
+                <p class="small">Repositories werden über das <a href="/admin/repositories" target="_blank">Repository Management</a> verwaltet.</p>
+                
+                <h6>Issue-Text</h6>
+                <p class="small">Beschreiben Sie das Problem, Feature oder die Aufgabe. Die KI wird:</p>
+                <ul class="small">
+                    <li>Rechtschreibung und Grammatik korrigieren</li>
+                    <li>Den Text strukturieren</li>
+                    <li>Einen passenden Titel generieren</li>
+                    <li>Das Issue kategorisieren (Bug, Feature, Task)</li>
+                    <li>Passende Labels vorschlagen</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GitHub Issues History -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">GitHub Issues Verlauf</h5>
+                <span class="badge bg-secondary">{{ total_count }} Issues</span>
+            </div>
+            <div class="card-body">
+                {% if github_issues %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Repository</th>
+                                    <th>Titel</th>
+                                    <th>Status</th>
+                                    <th>Issue #</th>
+                                    <th>Erstellt von</th>
+                                    <th>Datum</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for issue in github_issues %}
+                                <tr>
+                                    <td>
+                                        <code>{{ issue.repository }}</code>
+                                    </td>
+                                    <td>
+                                        {% if issue.issue_title %}
+                                            {{ issue.issue_title[:50] }}{% if issue.issue_title|length > 50 %}...{% endif %}
+                                        {% else %}
+                                            <span class="text-muted">Kein Titel</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if issue.success %}
+                                            <span class="badge bg-success">Erfolgreich</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Fehlgeschlagen</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if issue.issue_number and issue.success %}
+                                            <a href="{{ issue.issue_url }}" target="_blank" class="text-decoration-none">
+                                                #{{ issue.issue_number }}
+                                                <i class="bi bi-box-arrow-up-right"></i>
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ issue.created_by }}</td>
+                                    <td>{{ issue.created_at.strftime('%d.%m.%Y %H:%M') if issue.created_at else '-' }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-info details-btn" 
+                                                data-repository="{{ issue.repository }}"
+                                                data-title="{{ (issue.issue_title or '')|e }}"
+                                                data-original-text="{{ (issue.original_text[:100] + ('...' if issue.original_text|length > 100 else ''))|e }}"
+                                                data-processed-text="{{ ((issue.processed_text[:100] if issue.processed_text else '') + ('...' if issue.processed_text and issue.processed_text|length > 100 else ''))|e }}"
+                                                data-success="{{ issue.success|lower }}"
+                                                data-error-message="{{ (issue.error_message or '')|e }}">
+                                            <i class="bi bi-eye"></i> Details
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if total_pages > 1 %}
+                        <nav aria-label="GitHub Issues Pagination">
+                            <ul class="pagination justify-content-center">
+                                {% if has_prev %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ prev_page }}">Vorherige</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for page_num in range(1, total_pages + 1) %}
+                                    {% if page_num == current_page %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ page_num }}</span>
+                                        </li>
+                                    {% elif page_num <= 3 or page_num > total_pages - 3 or (page_num >= current_page - 1 and page_num <= current_page + 1) %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                                        </li>
+                                    {% elif page_num == 4 and current_page > 6 %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    {% elif page_num == total_pages - 3 and current_page < total_pages - 5 %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ next_page }}">Nächste</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <h5 class="text-muted">Keine GitHub Issues gefunden</h5>
+                        <p class="text-muted">Erstellen Sie Ihr erstes GitHub Issue mit dem Formular oben.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Issue Details Modal -->
+<div class="modal fade" id="issueDetailsModal" tabindex="-1" aria-labelledby="issueDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="issueDetailsModalLabel">Issue Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Repository:</strong></div>
+                    <div class="col-sm-8" id="modalRepository"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Titel:</strong></div>
+                    <div class="col-sm-8" id="modalTitle"></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Status:</strong></div>
+                    <div class="col-sm-8" id="modalStatus"></div>
+                </div>
+                <div id="errorSection" class="row mb-3" style="display: none;">
+                    <div class="col-sm-4"><strong>Fehler:</strong></div>
+                    <div class="col-sm-8">
+                        <div class="alert alert-danger" id="modalError"></div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <strong>Original-Text:</strong>
+                        <div class="border rounded p-3 bg-light mt-2">
+                            <pre id="modalOriginalText" style="white-space: pre-wrap; font-family: inherit;"></pre>
+                        </div>
+                    </div>
+                </div>
+                <div id="processedSection" class="row mb-3">
+                    <div class="col-12">
+                        <strong>KI-verbesserter Text:</strong>
+                        <div class="border rounded p-3 bg-light mt-2">
+                            <pre id="modalProcessedText" style="white-space: pre-wrap; font-family: inherit;"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showIssueDetails(repository, title, originalText, processedText, success, errorMessage) {
+    // Set modal content
+    const repositoryElement = document.getElementById('modalRepository');
+    repositoryElement.innerHTML = '';
+    const codeElement = document.createElement('code');
+    codeElement.textContent = repository;
+    repositoryElement.appendChild(codeElement);
+    document.getElementById('modalTitle').textContent = title || 'Kein Titel';
+    
+    // Set status with badge
+    const statusElement = document.getElementById('modalStatus');
+    if (success) {
+        statusElement.innerHTML = '<span class="badge bg-success">Erfolgreich</span>';
+        document.getElementById('errorSection').style.display = 'none';
+        document.getElementById('processedSection').style.display = 'block';
+    } else {
+        statusElement.innerHTML = '<span class="badge bg-danger">Fehlgeschlagen</span>';
+        document.getElementById('errorSection').style.display = 'block';
+        document.getElementById('modalError').textContent = errorMessage || 'Unbekannter Fehler';
+        document.getElementById('processedSection').style.display = processedText ? 'block' : 'none';
+    }
+    
+    // Set text content
+    document.getElementById('modalOriginalText').textContent = originalText;
+    if (processedText) {
+        document.getElementById('modalProcessedText').textContent = processedText;
+    }
+    
+    // Show modal
+    new bootstrap.Modal(document.getElementById('issueDetailsModal')).show();
+}
+
+// Load repositories for dropdown
+function loadRepositories() {
+    fetch('/admin/api/repositories/active')
+        .then(response => response.json())
+        .then(repositories => {
+            const select = document.getElementById('repository');
+            
+            // Clear existing options except the first one
+            while (select.children.length > 1) {
+                select.removeChild(select.lastChild);
+            }
+            
+            // Add repository options
+            repositories.forEach(repo => {
+                const option = document.createElement('option');
+                option.value = repo.full_name;
+                option.textContent = repo.full_name;
+                if (repo.description) {
+                    option.title = repo.description;
+                }
+                select.appendChild(option);
+            });
+            
+            if (repositories.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Keine aktiven Repositories gefunden';
+                option.disabled = true;
+                select.appendChild(option);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading repositories:', error);
+            const select = document.getElementById('repository');
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Fehler beim Laden der Repositories';
+            option.disabled = true;
+            select.appendChild(option);
+        });
+}
+// Event delegation for Details buttons
+document.addEventListener('click', function(event) {
+    if (event.target.closest('.details-btn')) {
+        const button = event.target.closest('.details-btn');
+        const repository = button.dataset.repository;
+        const title = button.dataset.title;
+        const originalText = button.dataset.originalText;
+        const processedText = button.dataset.processedText;
+        const success = button.dataset.success === 'true';
+        const errorMessage = button.dataset.errorMessage;
+        
+        showIssueDetails(repository, title, originalText, processedText, success, errorMessage);
+    }
+});
+
+// Auto-hide alerts after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.alert-dismissible');
+    alerts.forEach(function(alert) {
+        setTimeout(function() {
+            if (alert.classList.contains('show')) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }
+        }, 5000);
+    });
+    
+    // Load repositories when page loads
+    loadRepositories();
+});
+</script>
+{% endblock %}

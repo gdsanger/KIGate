@@ -1,0 +1,179 @@
+"""
+Google Gemini API Controller
+
+This controller encapsulates and represents the functions/endpoints of the Google Gemini API.
+The main task of the controller is to send requests to the Google Gemini API and receive and return the response.
+"""
+
+import logging
+from typing import Optional
+import google.generativeai as genai
+
+from model.aiapirequest import aiapirequest
+from model.aiapiresult import aiapiresult
+from config import GEMINI_API_KEY
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+
+class GeminiController:
+    """Controller for Google Gemini API interactions"""
+    
+    def __init__(self, strict_mode: bool = True):
+        """
+        Initialize Gemini controller with API configuration
+        
+        Args:
+            strict_mode: If True, raises error when API key is missing
+        """
+        self.client = None
+        
+        if GEMINI_API_KEY:
+            try:
+                genai.configure(api_key=GEMINI_API_KEY)
+                # Verify the configuration works
+                self.client = genai.GenerativeModel('gemini-pro')
+                logger.info("Gemini API client initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize Gemini API client: {str(e)}")
+                if strict_mode:
+                    raise ValueError(f"Failed to initialize Gemini API client: {str(e)}")
+        else:
+            logger.warning("GEMINI_API_KEY not found in environment variables")
+            if strict_mode:
+                raise ValueError("Gemini API key is not configured")
+    
+    async def process_request(self, request: aiapirequest) -> aiapiresult:
+        """
+        Process an AI API request and return the result
+        
+        Args:
+            request: The aiapirequest object containing job_id, user_id, model, and message
+            
+        Returns:
+            aiapiresult: The result containing response content, success status, and any error messages
+        """
+        logger.info(f"Processing Gemini request for job_id: {request.job_id}, user_id: {request.user_id}")
+        
+        # Check if Gemini client is initialized
+        if not self.client:
+            error_msg = "Gemini API key is not configured"
+            logger.error(f"Configuration error for job_id {request.job_id}: {error_msg}")
+            
+            return aiapiresult(
+                job_id=request.job_id,
+                user_id=request.user_id,
+                content="",
+                success=False,
+                error_message=error_msg
+            )
+        
+        try:
+            # Validate input parameters
+            if not request.message or not request.message.strip():
+                raise ValueError("Message cannot be empty")
+            
+            if not request.model or not request.model.strip():
+                raise ValueError("Model cannot be empty")
+            
+            # Create generative model with specified model or default to gemini-pro
+            try:
+                model = genai.GenerativeModel(request.model)
+            except Exception as e:
+                logger.warning(f"Failed to use model '{request.model}', falling back to 'gemini-pro': {str(e)}")
+                model = genai.GenerativeModel('gemini-pro')
+            
+            # Make API call to Gemini
+            logger.debug(f"Sending request to Gemini API with model: {request.model}")
+            
+            response = model.generate_content(request.message)
+            
+            # Extract content from response
+            if response and response.text:
+                content = response.text
+                
+                logger.info(f"Successfully received response for job_id: {request.job_id}")
+                
+                return aiapiresult(
+                    job_id=request.job_id,
+                    user_id=request.user_id,
+                    content=content,
+                    success=True,
+                    error_message=None
+                )
+            else:
+                error_msg = "No response text returned from Gemini API"
+                logger.error(f"Error for job_id {request.job_id}: {error_msg}")
+                
+                return aiapiresult(
+                    job_id=request.job_id,
+                    user_id=request.user_id,
+                    content="",
+                    success=False,
+                    error_message=error_msg
+                )
+                
+        except ValueError as e:
+            # Validation errors
+            error_msg = f"Validation error: {str(e)}"
+            logger.error(f"Validation error for job_id {request.job_id}: {error_msg}")
+            
+            return aiapiresult(
+                job_id=request.job_id,
+                user_id=request.user_id,
+                content="",
+                success=False,
+                error_message=error_msg
+            )
+        
+        except Exception as e:
+            # Check for specific Gemini API errors
+            error_str = str(e).lower()
+            
+            if "quota" in error_str or "limit" in error_str:
+                error_msg = f"Rate limit or quota exceeded: {str(e)}"
+                logger.error(f"Rate limit error for job_id {request.job_id}: {error_msg}")
+            elif "permission" in error_str or "unauthorized" in error_str or "forbidden" in error_str:
+                error_msg = f"Authentication error: {str(e)}"
+                logger.error(f"Authentication error for job_id {request.job_id}: {error_msg}")
+            elif "api" in error_str:
+                error_msg = f"Gemini API error: {str(e)}"
+                logger.error(f"API error for job_id {request.job_id}: {error_msg}")
+            else:
+                error_msg = f"Unexpected error: {str(e)}"
+                logger.error(f"Unexpected error for job_id {request.job_id}: {error_msg}")
+            
+            return aiapiresult(
+                job_id=request.job_id,
+                user_id=request.user_id,
+                content="",
+                success=False,
+                error_message=error_msg
+            )
+
+
+# Singleton instance
+_gemini_controller: Optional[GeminiController] = None
+
+
+def get_gemini_controller() -> GeminiController:
+    """Get or create the Gemini controller singleton instance"""
+    global _gemini_controller
+    if _gemini_controller is None:
+        _gemini_controller = GeminiController()
+    return _gemini_controller
+
+
+async def process_gemini_request(request: aiapirequest) -> aiapiresult:
+    """
+    Process a Gemini API request using the singleton controller
+    
+    Args:
+        request: The aiapirequest object
+        
+    Returns:
+        aiapiresult: The response from Gemini API
+    """
+    controller = get_gemini_controller()
+    return await controller.process_request(request)

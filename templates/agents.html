@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Agent Verwaltung</h1>
+    <div class="btn-group">
+        <a href="/admin/agents/ai-create" class="btn btn-primary">
+            <i class="bi bi-robot"></i> Mit AI erstellen
+        </a>
+        <a href="/admin/agents/new" class="btn btn-outline-primary">
+            <i class="bi bi-plus-circle"></i> Manuell erstellen
+        </a>
+    </div>
+</div>
+
+{% if message %}
+<div class="alert alert-{{ message_type }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Beschreibung</th>
+                <th>Rolle</th>
+                <th>Provider</th>
+                <th>Modell</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for agent in agents %}
+            <tr>
+                <td><strong>{{ agent.name }}</strong></td>
+                <td>{{ agent.description[:100] }}{% if agent.description|length > 100 %}...{% endif %}</td>
+                <td>{{ agent.role }}</td>
+                <td>{{ agent.provider }}</td>
+                <td>{{ agent.model }}</td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <a href="/admin/agents/{{ agent.name }}/edit" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+
+                        <button type="button" class="btn btn-outline-info" onclick="viewAgent('{{ agent.name }}')">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        
+                        <button type="button" class="btn btn-outline-success" onclick="testAgent('{{ agent.name }}')" title="Agent testen">
+                            <i class="bi bi-play-circle"></i>
+                        </button>
+                        
+                        <button type="button" class="btn btn-outline-danger" onclick="deleteAgent('{{ agent.name }}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">Keine Agents vorhanden</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- View Agent Modal -->
+<div class="modal fade" id="viewAgentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agent Details: <span id="view_agent_name"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">Grundinformationen</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-sm-3"><strong>Name:</strong></div>
+                                    <div class="col-sm-9" id="view_name"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3"><strong>Beschreibung:</strong></div>
+                                    <div class="col-sm-9" id="view_description"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3"><strong>Rolle:</strong></div>
+                                    <div class="col-sm-9" id="view_role"></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3"><strong>Provider:</strong></div>
+                                    <div class="col-sm-9"><span id="view_provider" class="badge bg-primary"></span></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3"><strong>Modell:</strong></div>
+                                    <div class="col-sm-9"><span id="view_model" class="badge bg-info"></span></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">Aufgabe</h6>
+                            </div>
+                            <div class="card-body">
+                                <pre id="view_task" class="bg-light p-3 rounded" style="white-space: pre-wrap;"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">Parameter</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="view_parameters"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                <a id="edit_agent_link" href="#" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Bearbeiten
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Test Agent Modal -->
+<div class="modal fade" id="testAgentModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Agent Testen: <span id="test_agent_name"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="testAgentForm" onsubmit="return false;">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Nachricht</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="test_message" class="form-label">Ihre Nachricht an den Agent</label>
+                                        <textarea class="form-control" id="test_message" name="message" rows="6" placeholder="Geben Sie Ihre Nachricht ein..." required></textarea>
+                                    </div>
+                                    
+                                    <div id="test_parameters_container">
+                                        <h6 class="mb-3">Parameter</h6>
+                                        <div id="test_parameters_list">
+                                            <!-- Parameters will be dynamically added here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-6">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="card-title mb-0">Antwort</h6>
+                                    <div id="test_status_indicator"></div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="test_response" class="bg-light p-3 rounded" style="min-height: 300px; white-space: pre-wrap; overflow-y: auto;">
+                                        <p class="text-muted">Antwort erscheint hier nach dem Senden...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                <button type="button" class="btn btn-primary" id="sendTestButton" onclick="sendTestRequest()">
+                    <i class="bi bi-send"></i> Senden
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function viewAgent(name) {
+    fetch(`/admin/api/agents/${encodeURIComponent(name)}`)
+        .then(response => response.json())
+        .then(agent => {
+            document.getElementById('view_agent_name').textContent = agent.name;
+            document.getElementById('view_name').textContent = agent.name;
+            document.getElementById('view_description').textContent = agent.description;
+            document.getElementById('view_role').textContent = agent.role;
+            document.getElementById('view_provider').textContent = agent.provider;
+            document.getElementById('view_model').textContent = agent.model;
+            document.getElementById('view_task').textContent = agent.task;
+            document.getElementById('edit_agent_link').href = `/admin/agents/${encodeURIComponent(name)}/edit`;
+            
+            // Display parameters
+            const parametersContainer = document.getElementById('view_parameters');
+            if (agent.parameters && Array.isArray(agent.parameters) && agent.parameters.length > 0) {
+                let parametersHtml = '';
+                agent.parameters.forEach(param => {
+                    Object.entries(param).forEach(([key, value]) => {
+                        parametersHtml += `
+                            <div class="mb-3 p-3 border rounded">
+                                <h6 class="fw-bold text-primary">${key}</h6>
+                                <div class="small">
+                                    <div class="mb-1">
+                                        <strong>Typ:</strong> 
+                                        <span class="badge bg-secondary">${value.type || 'nicht definiert'}</span>
+                                    </div>
+                                    <div class="mb-1">
+                                        <strong>Beschreibung:</strong>
+                                    </div>
+                                    <div class="text-muted">${value.description || 'keine Beschreibung'}</div>
+                                    ${value.default ? `<div class="mt-2"><strong>Standard:</strong> <code>${value.default}</code></div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+                parametersContainer.innerHTML = parametersHtml;
+            } else {
+                parametersContainer.innerHTML = '<p class="text-muted">Keine Parameter definiert.</p>';
+            }
+            
+            new bootstrap.Modal(document.getElementById('viewAgentModal')).show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Fehler beim Laden der Agent-Daten');
+        });
+}
+
+function cloneAgent(name) {
+    if (confirm(`Möchten Sie den Agent "${name}" klonen?`)) {
+        fetch(`/admin/agents/${encodeURIComponent(name)}/clone`, {method: 'POST'})
+            .then(response => response.json())
+            .then(data => {
+                // Navigate to edit page for the cloned agent
+                window.location.href = `/admin/agents/${encodeURIComponent(data.cloned_agent.name)}/edit`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Fehler beim Klonen des Agenten');
+            });
+    }
+}
+
+function deleteAgent(name) {
+    if (confirm(`Möchten Sie den Agent "${name}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) {
+        fetch(`/admin/agents/${encodeURIComponent(name)}`, {method: 'DELETE'})
+            .then(response => response.json())
+            .then(() => location.reload())
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Fehler beim Löschen des Agenten');
+            });
+    }
+}
+
+function testAgent(name) {
+    fetch(`/admin/api/agents/${encodeURIComponent(name)}`)
+        .then(response => response.json())
+        .then(agent => {
+            document.getElementById('test_agent_name').textContent = agent.name;
+            
+            // Reset form
+            document.getElementById('test_message').value = '';
+            document.getElementById('test_response').innerHTML = '<p class="text-muted">Antwort erscheint hier nach dem Senden...</p>';
+            document.getElementById('test_status_indicator').innerHTML = '';
+            
+            // Clear and populate parameters
+            const parametersList = document.getElementById('test_parameters_list');
+            parametersList.innerHTML = '';
+            
+            if (agent.parameters && Array.isArray(agent.parameters) && agent.parameters.length > 0) {
+                agent.parameters.forEach(param => {
+                    Object.entries(param).forEach(([key, value]) => {
+                        const paramDiv = document.createElement('div');
+                        paramDiv.className = 'mb-3';
+                        
+                        // Create label
+                        const label = document.createElement('label');
+                        label.setAttribute('for', `param_${key}`);
+                        label.className = 'form-label';
+                        label.textContent = `${key} `;
+                        
+                        const typeSpan = document.createElement('small');
+                        typeSpan.className = 'text-muted';
+                        typeSpan.textContent = `(${value.type || 'string'})`;
+                        label.appendChild(typeSpan);
+                        
+                        // Create input
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'form-control';
+                        input.id = `param_${key}`;
+                        input.name = `param_${key}`;
+                        input.placeholder = value.description || key;
+                        if (value.default) {
+                            input.value = value.default;
+                        }
+                        
+                        // Create description if exists
+                        paramDiv.appendChild(label);
+                        paramDiv.appendChild(input);
+                        
+                        if (value.description) {
+                            const descDiv = document.createElement('div');
+                            descDiv.className = 'form-text';
+                            descDiv.textContent = value.description;
+                            paramDiv.appendChild(descDiv);
+                        }
+                        
+                        parametersList.appendChild(paramDiv);
+                    });
+                });
+                document.getElementById('test_parameters_container').style.display = 'block';
+            } else {
+                document.getElementById('test_parameters_container').style.display = 'none';
+            }
+            
+            new bootstrap.Modal(document.getElementById('testAgentModal')).show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Fehler beim Laden der Agent-Daten');
+        });
+}
+
+function sendTestRequest() {
+    const agentName = document.getElementById('test_agent_name').textContent;
+    const message = document.getElementById('test_message').value.trim();
+    
+    if (!message) {
+        alert('Bitte geben Sie eine Nachricht ein.');
+        return;
+    }
+    
+    // Collect parameters
+    const parameters = {};
+    const paramInputs = document.querySelectorAll('#test_parameters_list input');
+    paramInputs.forEach(input => {
+        const paramName = input.name.replace('param_', '');
+        if (input.value.trim()) {
+            parameters[paramName] = input.value.trim();
+        }
+    });
+    
+    // Update UI state
+    const sendButton = document.getElementById('sendTestButton');
+    const statusIndicator = document.getElementById('test_status_indicator');
+    const responseDiv = document.getElementById('test_response');
+    
+    sendButton.disabled = true;
+    sendButton.innerHTML = '<i class="bi bi-hourglass-split"></i> Wird gesendet...';
+    statusIndicator.innerHTML = '<span class="badge bg-warning">Lädt...</span>';
+    responseDiv.innerHTML = '<p class="text-muted">Anfrage wird verarbeitet...</p>';
+    
+    // Send test request
+    fetch(`/admin/agents/${encodeURIComponent(agentName)}/test`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message: message,
+            parameters: Object.keys(parameters).length > 0 ? parameters : null
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            statusIndicator.innerHTML = '<span class="badge bg-success">Erfolgreich</span>';
+            responseDiv.textContent = data.result || 'Keine Antwort erhalten.';
+        } else {
+            statusIndicator.innerHTML = '<span class="badge bg-danger">Fehler</span>';
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'text-danger';
+            errorDiv.textContent = `Fehler: ${data.error || 'Unbekannter Fehler'}`;
+            responseDiv.innerHTML = '';
+            responseDiv.appendChild(errorDiv);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        statusIndicator.innerHTML = '<span class="badge bg-danger">Fehler</span>';
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'text-danger';
+        errorDiv.textContent = `Netzwerkfehler: ${error.message}`;
+        responseDiv.innerHTML = '';
+        responseDiv.appendChild(errorDiv);
+    })
+    .finally(() => {
+        sendButton.disabled = false;
+        sendButton.innerHTML = '<i class="bi bi-send"></i> Senden';
+    });
+}
+</script>
+{% endblock %}

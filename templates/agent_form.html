@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        {% if mode == "create" %}
+            Neuen Agent erstellen
+        {% else %}
+            Agent bearbeiten: {{ agent.name }}
+        {% endif %}
+    </h1>
+    <div>
+        <a href="/admin/agents" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+        </a>
+    </div>
+</div>
+
+{% if message %}
+<div class="alert alert-{{ message_type }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    {% if mode == "create" %}
+                        Agent Informationen
+                    {% else %}
+                        Agent bearbeiten
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{% if mode == 'create' %}/admin/agents/create{% else %}/admin/agents/{{ agent.name }}/update{% endif %}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{% if agent %}{{ agent.name }}{% endif %}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Beschreibung *</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required>{% if agent %}{{ agent.description }}{% endif %}</textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Rolle *</label>
+                                <textarea class="form-control" id="role" name="role" rows="3" required>{% if agent %}{{ agent.role }}{% endif %}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="provider" class="form-label">Provider *</label>
+                                <select class="form-select" id="provider" name="provider" required>
+                                    <option value="openai" {% if agent and agent.provider == "openai" %}selected{% endif %}>OpenAI</option>
+                                    <option value="anthropic" {% if agent and agent.provider == "anthropic" %}selected{% endif %}>Anthropic</option>
+                                    <option value="azure" {% if agent and agent.provider == "azure" %}selected{% endif %}>Azure</option>
+                                    <option value="local" {% if agent and agent.provider == "local" %}selected{% endif %}>Local</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="model" class="form-label">Modell *</label>
+                                <input type="text" class="form-control" id="model" name="model" 
+                                       value="{% if agent %}{{ agent.model }}{% endif %}" 
+                                       placeholder="z.B. gpt-4" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="task" class="form-label">Aufgabe *</label>
+                        <textarea class="form-control" id="task" name="task" rows="6" required 
+                                  placeholder="Detaillierte Beschreibung der Aufgabe des Agenten...">{% if agent %}{{ agent.task }}{% endif %}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="parameters" class="form-label">Parameter (YAML)</label>
+                        <textarea class="form-control" id="parameters" name="parameters" rows="8" 
+                                  placeholder="- Inputtext:&#10;    type: string&#10;    description: The input text.&#10;- Model:&#10;    type: string&#10;    description: The model to use.&#10;    default: gpt-4"></textarea>
+                        <div class="form-text">Optional: Parameter im YAML-Format definieren</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="/admin/agents" class="btn btn-secondary">Abbrechen</a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if mode == "create" %}
+                                Erstellen
+                            {% else %}
+                                Speichern
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    {% if agent %}
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Vorschau</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Provider:</strong>
+                    <span class="badge bg-primary">{{ agent.provider }}</span>
+                </div>
+                <div class="mb-3">
+                    <strong>Modell:</strong>
+                    <span class="badge bg-info">{{ agent.model }}</span>
+                </div>
+                {% if agent.parameters %}
+                <div class="mb-3">
+                    <strong>Parameter:</strong>
+                    <div class="small mt-2">
+                        {% for param_dict in agent.parameters %}
+                            {% for param_name, param_info in param_dict.items() %}
+                            <div class="mb-2 p-2 border rounded">
+                                <strong>{{ param_name }}</strong>
+                                <div class="text-muted small">{{ param_info.type }}</div>
+                            </div>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-populate parameter YAML for editing
+{% if agent and agent.parameters %}
+document.addEventListener('DOMContentLoaded', function() {
+    const agentData = {
+        name: "{{ agent.name }}",
+        description: "{{ agent.description }}",
+        role: "{{ agent.role }}",
+        provider: "{{ agent.provider }}",
+        model: "{{ agent.model }}",
+        task: "{{ agent.task }}",
+        parameters: {{ agent.parameters | tojson if agent.parameters else '[]' }}
+    };
+    
+    let parametersYaml = '';
+    if (agentData.parameters && Array.isArray(agentData.parameters)) {
+        parametersYaml = agentData.parameters.map(param => {
+            const entries = Object.entries(param);
+            return entries.map(([key, value]) => {
+                let yaml = `- ${key}:\n`;
+                if (value.type) yaml += `    type: ${value.type}\n`;
+                if (value.description) yaml += `    description: ${value.description}\n`;
+                if (value.default) yaml += `    default: ${value.default}\n`;
+                return yaml;
+            }).join('');
+        }).join('');
+    }
+    document.getElementById('parameters').value = parametersYaml;
+});
+{% endif %}
+</script>
+{% endblock %}

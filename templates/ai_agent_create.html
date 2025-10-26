@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-robot"></i> AI Agent erstellen
+    </h1>
+    <div>
+        <a href="/admin/agents/new" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-pencil"></i> Manuell erstellen
+        </a>
+        <a href="/admin/agents" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+        </a>
+    </div>
+</div>
+
+{% if message %}
+<div class="alert alert-{{ message_type }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-magic"></i> Beschreiben Sie Ihren gewünschten Agenten
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/admin/agents/ai-generate">
+                    <div class="mb-4">
+                        <label for="description" class="form-label">
+                            <strong>Was soll Ihr Agent können? *</strong>
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="8" required 
+                                  placeholder="Beschreiben Sie detailliert, was Ihr Agent machen soll...">{{ description if description else '' }}</textarea>
+                        <div class="form-text">
+                            <strong>Beispiele:</strong><br>
+                            • "Ich brauche einen Agenten, der E-Mails auf Deutsch korrigiert und professioneller macht"<br>
+                            • "Erstelle einen Agenten für die Übersetzung von technischen Dokumenten ins Englische"<br>
+                            • "Ein Agent, der Produktbeschreibungen für Online-Shops optimiert und SEO-freundlich macht"<br>
+                            <strong>Tipp:</strong> Je genauer Sie beschreiben, desto besser wird der generierte Agent.
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="/admin/agents" class="btn btn-secondary">Abbrechen</a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-magic"></i> Agent generieren lassen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-info-circle"></i> Wie funktioniert es?
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="badge bg-primary rounded-circle p-2">1</div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <strong>Beschreibung eingeben</strong>
+                        <div class="small text-muted">
+                            Beschreiben Sie, was Ihr Agent können soll
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="badge bg-primary rounded-circle p-2">2</div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <strong>AI-Generierung</strong>
+                        <div class="small text-muted">
+                            KI erstellt automatisch die Agent-Konfiguration
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <div class="badge bg-primary rounded-circle p-2">3</div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <strong>Review & Anpassung</strong>
+                        <div class="small text-muted">
+                            Überprüfen und bei Bedarf anpassen
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex">
+                    <div class="flex-shrink-0">
+                        <div class="badge bg-success rounded-circle p-2">4</div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <strong>Agent erstellen</strong>
+                        <div class="small text-muted">
+                            Fertiger Agent ist einsatzbereit
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-lightbulb"></i> Beispiele für gute Beschreibungen
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="small">
+                    <div class="mb-2">
+                        <strong>✅ Gut:</strong> "Ein Agent für die Korrektur deutscher E-Mails, der Rechtschreibfehler behebt, den Ton professioneller macht und höfliche Formulierungen vorschlägt."
+                    </div>
+                    <div class="mb-2">
+                        <strong>❌ Schlecht:</strong> "Ein Agent für E-Mails."
+                    </div>
+                    <hr>
+                    <div class="mb-2">
+                        <strong>✅ Gut:</strong> "Agent zur Analyse von Kundenfeedback in Online-Bewertungen, der Sentiment erkennt, Hauptkritikpunkte identifiziert und konkrete Verbesserungsvorschläge für Produkte macht."
+                    </div>
+                    <div>
+                        <strong>❌ Schlecht:</strong> "Feedback analysieren."
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('description');
+    const submitBtn = document.querySelector('button[type="submit"]');
+    
+    // Auto-resize textarea
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+        
+        // Update button state based on content length
+        const content = this.value.trim();
+        if (content.length < 10) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-magic"></i> Mindestens 10 Zeichen erforderlich';
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-magic"></i> Agent generieren lassen';
+        }
+    });
+    
+    // Initial check
+    textarea.dispatchEvent(new Event('input'));
+});
+</script>
+{% endblock %}

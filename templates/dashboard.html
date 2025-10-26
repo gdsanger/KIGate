@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">
+                <i class="bi bi-people"></i> Benutzer
+            </div>
+            <div class="card-body">
+                <h4 class="card-title">{{ user_count }}</h4>
+                <p class="card-text">Registrierte Benutzer</p>
+                <a href="/admin/users" class="btn btn-light btn-sm">Verwalten</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">
+                <i class="bi bi-check-circle"></i> Aktive Benutzer
+            </div>
+            <div class="card-body">
+                <h4 class="card-title">{{ active_user_count }}</h4>
+                <p class="card-text">Aktive Benutzer</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">
+                <i class="bi bi-robot"></i> Agents
+            </div>
+            <div class="card-body">
+                <h4 class="card-title">{{ agent_count }}</h4>
+                <p class="card-text">Konfigurierte Agents</p>
+                <a href="/admin/agents" class="btn btn-light btn-sm">Verwalten</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-header">
+                <i class="bi bi-activity"></i> System Status
+            </div>
+            <div class="card-body">
+                <h4 class="card-title">Online</h4>
+                <p class="card-text">KIGate API läuft</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> System Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>API Version:</strong> 1.0.0</p>
+                <p><strong>Beschreibung:</strong> Centralized agent-driven API Gateway for AI</p>
+                <p><strong>Datenbank:</strong> SQLite</p>
+                <p class="mb-0"><strong>Admin Panel:</strong> Integriert in FastAPI</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

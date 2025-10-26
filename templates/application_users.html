@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Admin Benutzerverwaltung</h1>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createApplicationUserModal">
+        <i class="bi bi-plus-circle"></i> Neuen Admin-Benutzer erstellen
+    </button>
+</div>
+
+{% if message %}
+<div class="alert alert-{{ message_type }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>E-Mail</th>
+                <th>Status</th>
+                <th>Erstellt</th>
+                <th>Letzter Login</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in application_users %}
+            <tr>
+                <td>
+                    <code class="text-muted small">{{ user.id[:8] }}...</code>
+                </td>
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                    {% if user.is_active %}
+                        <span class="badge bg-success">Aktiv</span>
+                    {% else %}
+                        <span class="badge bg-danger">Gesperrt</span>
+                    {% endif %}
+                </td>
+                <td>{{ user.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>{{ user.last_logon.strftime('%d.%m.%Y %H:%M') if user.last_logon else '-' }}</td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary" onclick="editApplicationUser('{{ user.id }}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="changePassword('{{ user.id }}')">
+                            <i class="bi bi-shield-lock"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" onclick="resetPassword('{{ user.id }}')">
+                            <i class="bi bi-key"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-{{ 'secondary' if user.is_active else 'success' }}" onclick="toggleStatus('{{ user.id }}')">
+                            <i class="bi bi-{{ 'lock' if user.is_active else 'unlock' }}"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" onclick="deleteApplicationUser('{{ user.id }}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Create ApplicationUser Modal -->
+<div class="modal fade" id="createApplicationUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Neuen Admin-Benutzer erstellen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="/admin/application-users/create">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-Mail *</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="form-text">Die E-Mail wird als Benutzername verwendet.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Passwort</label>
+                        <input type="password" class="form-control" id="password" name="password">
+                        <div class="form-text">Leer lassen für automatisch generiertes sicheres Passwort (empfohlen).</div>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                        <label class="form-check-label" for="is_active">
+                            Benutzer ist aktiv
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Erstellen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit ApplicationUser Modal -->
+<div class="modal fade" id="editApplicationUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Admin-Benutzer bearbeiten</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editApplicationUserForm" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_name" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="edit_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_email" class="form-label">E-Mail *</label>
+                        <input type="email" class="form-control" id="edit_email" name="email" required>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active">
+                        <label class="form-check-label" for="edit_is_active">
+                            Benutzer ist aktiv
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Passwort ändern</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="changePasswordForm" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Aktuelles Passwort *</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">Neues Passwort *</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required minlength="8">
+                        <div class="form-text">Das Passwort muss mindestens 8 Zeichen lang sein.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Neues Passwort bestätigen *</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Passwort ändern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editApplicationUser(userId) {
+    fetch(`/admin/api/application-users/${userId}`)
+        .then(response => response.json())
+        .then(user => {
+            document.getElementById('edit_name').value = user.name;
+            document.getElementById('edit_email').value = user.email;
+            document.getElementById('edit_is_active').checked = user.is_active;
+            document.getElementById('editApplicationUserForm').action = `/admin/application-users/${userId}/update`;
+            new bootstrap.Modal(document.getElementById('editApplicationUserModal')).show();
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function changePassword(userId) {
+    // Reset form
+    document.getElementById('changePasswordForm').reset();
+    document.getElementById('changePasswordForm').action = `/admin/application-users/${userId}/change-password`;
+    new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+}
+
+function resetPassword(userId) {
+    const confirmMsg = 'Möchten Sie wirklich ein neues Passwort generieren?\n\n' +
+                      'Das alte wird ungültig und der Benutzer erhält die neuen Zugangsdaten per E-Mail.';
+    if (confirm(confirmMsg)) {
+        fetch(`/admin/application-users/${userId}/reset-password`, {method: 'POST'})
+            .then(response => response.json())
+            .then(data => {
+                if (data.new_password) {
+                    alert(`Neues Passwort: ${data.new_password}\n\nEine E-Mail mit den neuen Zugangsdaten wurde an den Benutzer gesendet.`);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+}
+
+function toggleStatus(userId) {
+    fetch(`/admin/application-users/${userId}/toggle-status`, {method: 'POST'})
+        .then(() => location.reload())
+        .catch(error => console.error('Error:', error));
+}
+
+function deleteApplicationUser(userId) {
+    const confirmMsg = 'Möchten Sie diesen Admin-Benutzer wirklich löschen?\n\n' +
+                      'Diese Aktion kann nicht rückgängig gemacht werden.';
+    if (confirm(confirmMsg)) {
+        fetch(`/admin/application-users/${userId}`, {method: 'DELETE'})
+            .then(() => location.reload())
+            .catch(error => console.error('Error:', error));
+    }
+}
+
+// Handle password change form submission
+document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const newPassword = formData.get('new_password');
+    const confirmPassword = formData.get('confirm_password');
+    
+    // Validate password confirmation
+    if (newPassword !== confirmPassword) {
+        alert('Die Passwörter stimmen nicht überein.');
+        return;
+    }
+    
+    // Submit the form
+    fetch(this.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            return response.json().then(data => Promise.reject(data));
+        }
+    })
+    .then(data => {
+        alert(data.message);
+        bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
+    })
+    .catch(error => {
+        alert(error.detail || 'Fehler beim Ändern des Passworts');
+    });
+});
+</script>
+{% endblock %}

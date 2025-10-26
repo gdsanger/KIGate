@@ -58,11 +58,20 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="provider" class="form-label">Provider *</label>
-                                <select class="form-select" id="provider" name="provider" required>
-                                    <option value="openai" {% if agent and agent.provider == "openai" %}selected{% endif %}>OpenAI</option>
-                                    <option value="anthropic" {% if agent and agent.provider == "anthropic" %}selected{% endif %}>Anthropic</option>
-                                    <option value="azure" {% if agent and agent.provider == "azure" %}selected{% endif %}>Azure</option>
-                                    <option value="local" {% if agent and agent.provider == "local" %}selected{% endif %}>Local</option>
+                                <select class="form-select" id="provider" name="provider" required onchange="loadModelsForProvider()">
+                                    <option value="">Bitte wählen...</option>
+                                    {% if providers %}
+                                        {% for provider in providers %}
+                                            <option value="{{ provider.name }}" {% if agent and agent.provider == provider.name %}selected{% endif %}>
+                                                {{ provider.name }} ({{ provider.provider_type }})
+                                            </option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="openai" {% if agent and agent.provider == "openai" %}selected{% endif %}>openai</option>
+                                        <option value="gemini" {% if agent and agent.provider == "gemini" %}selected{% endif %}>gemini</option>
+                                        <option value="claude" {% if agent and agent.provider == "claude" %}selected{% endif %}>claude</option>
+                                        <option value="ollama" {% if agent and agent.provider == "ollama" %}selected{% endif %}>ollama</option>
+                                    {% endif %}
                                 </select>
                             </div>
                         </div>
@@ -72,9 +81,13 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="model" class="form-label">Modell *</label>
-                                <input type="text" class="form-control" id="model" name="model" 
-                                       value="{% if agent %}{{ agent.model }}{% endif %}" 
-                                       placeholder="z.B. gpt-4" required>
+                                <select class="form-select" id="model" name="model" required>
+                                    <option value="">Zuerst Provider wählen...</option>
+                                    {% if agent %}
+                                        <option value="{{ agent.model }}" selected>{{ agent.model }}</option>
+                                    {% endif %}
+                                </select>
+                                <div class="form-text" id="model-hint">Wählen Sie einen Provider, um verfügbare Modelle zu laden</div>
                             </div>
                         </div>
                     </div>
@@ -146,9 +159,27 @@
 
 {% block scripts %}
 <script>
-// Auto-populate parameter YAML for editing
-{% if agent and agent.parameters %}
-document.addEventListener('DOMContentLoaded', function() {
+// Store providers data
+let providersData = [];
+
+// Load providers on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        const response = await fetch('/admin/api/providers-for-agents');
+        if (response.ok) {
+            providersData = await response.json();
+            
+            // If editing an agent, load models for current provider
+            {% if agent and agent.provider %}
+            await loadModelsForProvider();
+            {% endif %}
+        }
+    } catch (error) {
+        console.error('Error loading providers:', error);
+    }
+    
+    // Auto-populate parameter YAML for editing
+    {% if agent and agent.parameters %}
     const agentData = {
         name: "{{ agent.name }}",
         description: "{{ agent.description }}",
@@ -173,7 +204,68 @@ document.addEventListener('DOMContentLoaded', function() {
         }).join('');
     }
     document.getElementById('parameters').value = parametersYaml;
+    {% endif %}
 });
-{% endif %}
+
+async function loadModelsForProvider() {
+    const providerSelect = document.getElementById('provider');
+    const modelSelect = document.getElementById('model');
+    const modelHint = document.getElementById('model-hint');
+    
+    const providerName = providerSelect.value;
+    
+    if (!providerName) {
+        modelSelect.innerHTML = '<option value="">Zuerst Provider wählen...</option>';
+        modelHint.textContent = 'Wählen Sie einen Provider, um verfügbare Modelle zu laden';
+        return;
+    }
+    
+    // Find provider by name
+    const provider = providersData.find(p => p.name === providerName);
+    
+    if (!provider) {
+        modelSelect.innerHTML = '<option value="">Provider nicht gefunden</option>';
+        modelHint.textContent = 'Provider wurde nicht gefunden';
+        return;
+    }
+    
+    try {
+        modelHint.textContent = 'Lade Modelle...';
+        const response = await fetch(`/admin/api/providers/${provider.id}/models`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to load models');
+        }
+        
+        const models = await response.json();
+        
+        {% if agent %}
+        const currentModel = "{{ agent.model }}";
+        {% else %}
+        const currentModel = null;
+        {% endif %}
+        
+        if (models.length === 0) {
+            modelSelect.innerHTML = '<option value="">Keine aktiven Modelle verfügbar</option>';
+            modelHint.textContent = 'Bitte laden Sie Modelle vom Provider in der Provider-Verwaltung';
+        } else {
+            modelSelect.innerHTML = '<option value="">Bitte wählen...</option>';
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.id;
+                option.textContent = model.name;
+                if (currentModel && model.id === currentModel) {
+                    option.selected = true;
+                }
+                modelSelect.appendChild(option);
+            });
+            modelHint.textContent = `${models.length} Modell(e) verfügbar`;
+        }
+    } catch (error) {
+        console.error('Error loading models:', error);
+        modelSelect.innerHTML = '<option value="">Fehler beim Laden der Modelle</option>';
+        modelHint.textContent = 'Fehler beim Laden der Modelle';
+    }
+}
 </script>
 {% endblock %}

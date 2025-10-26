@@ -14,6 +14,8 @@ from model.application_user import ApplicationUser
 from model.github_issue_record import GitHubIssueRecord
 # Import Repository model to ensure it's registered with Base
 from model.repository import Repository
+# Import Provider and ProviderModel models to ensure they're registered with Base
+from model.provider import Provider, ProviderModel
 # Import Settings model to ensure it's registered with Base
 from model.settings import Settings
 # Import AIAuditLog model to ensure it's registered with Base

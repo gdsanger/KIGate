@@ -18,6 +18,7 @@ from model.job import Job
 from model.application_user import ApplicationUser, ApplicationUserCreate, ApplicationUserUpdate, ApplicationUserPasswordChange
 from model.ai_agent_generator import AgentGenerationRequest, AgentGenerationResponse, AgentGenerationReview
 from model.repository import Repository, RepositoryCreate, RepositoryUpdate
+from model.provider import ProviderCreate, ProviderUpdate, ProviderModelUpdate
 
 from service.user_service import UserService
 from service.agent_service import AgentService
@@ -25,6 +26,7 @@ from service.job_service import JobService
 from service.application_user_service import ApplicationUserService
 from service.ai_agent_generator_service import AIAgentGeneratorService
 from service.repository_service import RepositoryService, GitHubSyncError
+from service.provider_service import ProviderService
 import yaml
 from service.ai_service import send_ai_request
 from model.aiapirequest import aiapirequest
@@ -316,13 +318,18 @@ async def create_agent(
 @admin_router.get("/agents/new", response_class=HTMLResponse)
 async def new_agent_page(
     request: Request,
+    db: AsyncSession = Depends(get_async_session),
     admin_user: str = Depends(get_admin_user)
 ):
     """New agent page"""
+    providers = await ProviderService.get_all_providers(db, include_models=False)
+    active_providers = [p for p in providers if p.is_active]
+    
     return templates.TemplateResponse("agent_form.html", {
         "request": request,
         "mode": "create",
-        "agent": None
+        "agent": None,
+        "providers": active_providers
     })
 
 
@@ -330,6 +337,7 @@ async def new_agent_page(
 async def edit_agent_page(
     name: str,
     request: Request,
+    db: AsyncSession = Depends(get_async_session),
     admin_user: str = Depends(get_admin_user)
 ):
     """Edit agent page"""
@@ -337,10 +345,14 @@ async def edit_agent_page(
     if not agent:
         raise HTTPException(status_code=404, detail="Agent nicht gefunden")
     
+    providers = await ProviderService.get_all_providers(db, include_models=False)
+    active_providers = [p for p in providers if p.is_active]
+    
     return templates.TemplateResponse("agent_form.html", {
         "request": request,
         "mode": "edit",
-        "agent": agent
+        "agent": agent,
+        "providers": active_providers
     })
 
 
@@ -1181,6 +1193,9 @@ async def get_active_repositories(
     return [{"full_name": repo.full_name, "description": repo.description} for repo in repositories]
 
 
+# Provider Management Routes
+@admin_router.get("/providers", response_class=HTMLResponse)
+async def admin_providers(
 # Settings Management Routes
 @admin_router.get("/settings", response_class=HTMLResponse)
 async def admin_settings(
@@ -1190,6 +1205,12 @@ async def admin_settings(
     message_type: Optional[str] = None,
     admin_user: str = Depends(get_admin_user)
 ):
+    """Provider management page"""
+    providers = await ProviderService.get_all_providers(db, include_models=True)
+    
+    return templates.TemplateResponse("providers.html", {
+        "request": request,
+        "providers": providers,
     """Settings management page"""
     from service.settings_service import SettingsService
     settings = await SettingsService.get_all_settings(db)
@@ -1202,6 +1223,89 @@ async def admin_settings(
     })
 
 
+@admin_router.post("/providers/create")
+async def create_provider(
+    request: Request,
+    db: AsyncSession = Depends(get_async_session),
+    name: str = Form(...),
+    provider_type: str = Form(...),
+    api_key: Optional[str] = Form(None),
+    api_url: Optional[str] = Form(None),
+    organization_id: Optional[str] = Form(None),
+    is_active: bool = Form(False),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Create new provider"""
+    try:
+        provider_data = ProviderCreate(
+            name=name,
+            provider_type=provider_type,
+            api_key=api_key if api_key else None,
+            api_url=api_url if api_url else None,
+            organization_id=organization_id if organization_id else None,
+            is_active=is_active
+        )
+        
+        await ProviderService.create_provider(db, provider_data)
+        await db.commit()
+        
+        return RedirectResponse(
+            url=f"/admin/providers?message=Provider wurde erfolgreich erstellt&message_type=success",
+            status_code=303
+        )
+    except Exception as e:
+        await db.rollback()
+        return RedirectResponse(
+            url=f"/admin/providers?message={quote(f'Fehler beim Erstellen des Providers: {str(e)}')}&message_type=danger",
+            status_code=303
+        )
+
+
+@admin_router.get("/api/providers/{provider_id}")
+async def get_provider_api(
+    provider_id: str,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Get provider data for API"""
+    provider = await ProviderService.get_provider(db, provider_id, include_models=True)
+    if not provider:
+        raise HTTPException(status_code=404, detail="Provider nicht gefunden")
+    return provider
+
+
+@admin_router.post("/providers/{provider_id}/update")
+async def update_provider(
+    provider_id: str,
+    db: AsyncSession = Depends(get_async_session),
+    name: str = Form(...),
+    api_key: Optional[str] = Form(None),
+    api_url: Optional[str] = Form(None),
+    organization_id: Optional[str] = Form(None),
+    is_active: bool = Form(False),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Update provider"""
+    try:
+        provider_data = ProviderUpdate(
+            name=name,
+            api_key=api_key if api_key else None,
+            api_url=api_url if api_url else None,
+            organization_id=organization_id if organization_id else None,
+            is_active=is_active
+        )
+        
+        updated_provider = await ProviderService.update_provider(db, provider_id, provider_data)
+        if not updated_provider:
+            return RedirectResponse(
+                url=f"/admin/providers?message=Provider nicht gefunden&message_type=danger",
+                status_code=303
+            )
+        
+        await db.commit()
+        
+        return RedirectResponse(
+            url=f"/admin/providers?message=Provider wurde erfolgreich aktualisiert&message_type=success",
 @admin_router.post("/settings/update")
 async def update_settings(
     request: Request,
@@ -1256,12 +1360,117 @@ async def update_settings(
         )
     except Exception as e:
         await db.rollback()
+        return RedirectResponse(
+            url=f"/admin/providers?message={quote(f'Fehler beim Aktualisieren des Providers: {str(e)}')}&message_type=danger",
         logger.error(f"Error updating settings: {str(e)}")
         return RedirectResponse(
             url=f"/admin/settings?message={quote(f'Fehler beim Aktualisieren der Einstellungen: {str(e)}')}&message_type=danger",
             status_code=303
         )
 
+
+@admin_router.delete("/providers/{provider_id}")
+async def delete_provider(
+    provider_id: str,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Delete provider"""
+    try:
+        success = await ProviderService.delete_provider(db, provider_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Provider nicht gefunden")
+        
+        await db.commit()
+        
+        return JSONResponse({"message": "Provider wurde gelöscht"})
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@admin_router.post("/providers/{provider_id}/fetch-models")
+async def fetch_provider_models(
+    provider_id: str,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Fetch models from provider API"""
+    try:
+        models = await ProviderService.fetch_models_from_api(db, provider_id)
+        await db.commit()
+        
+        return JSONResponse({
+            "message": f"{len(models)} Modelle wurden erfolgreich geladen",
+            "models": [{"id": m.id, "name": m.model_name, "is_active": m.is_active} for m in models]
+        })
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error fetching models: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Fehler beim Laden der Modelle: {str(e)}")
+
+
+@admin_router.post("/providers/{provider_id}/models/{model_id}/toggle")
+async def toggle_provider_model(
+    provider_id: str,
+    model_id: str,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Toggle provider model active status"""
+    try:
+        # Get current model
+        models = await ProviderService.get_provider_models(db, provider_id)
+        model = next((m for m in models if m.id == model_id), None)
+        
+        if not model:
+            raise HTTPException(status_code=404, detail="Model nicht gefunden")
+        
+        # Toggle status
+        updated_model = await ProviderService.update_provider_model(
+            db, 
+            model_id, 
+            ProviderModelUpdate(is_active=not model.is_active)
+        )
+        await db.commit()
+        
+        return JSONResponse({"is_active": updated_model.is_active})
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@admin_router.get("/api/providers")
+async def get_all_providers_api(
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Get all active providers for dropdown"""
+    providers = await ProviderService.get_all_providers(db, include_models=False)
+    active_providers = [p for p in providers if p.is_active]
+    return [{"id": p.id, "name": p.name, "provider_type": p.provider_type} for p in active_providers]
+
+
+@admin_router.get("/api/providers/{provider_id}/models")
+async def get_provider_models_api(
+    provider_id: str,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Get active models for a provider"""
+    models = await ProviderService.get_provider_models(db, provider_id, active_only=True)
+    return [{"id": m.model_id, "name": m.model_name} for m in models]
+
+
+@admin_router.get("/api/providers-for-agents")
+async def get_providers_for_agents(
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Get all active providers for agent creation/editing"""
+    providers = await ProviderService.get_all_providers(db, include_models=False)
+    active_providers = [p for p in providers if p.is_active]
+    return [{"id": p.id, "name": p.name, "provider_type": p.provider_type} for p in active_providers]
 
 # AI Audit Log Routes
 @admin_router.get("/audit-logs", response_class=HTMLResponse)

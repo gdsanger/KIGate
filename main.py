@@ -495,6 +495,7 @@ async def create_github_issue(request: GitHubIssueRequest, current_user: User = 
 
 @app.post("/agent/execute-pdf", response_model=PDFAgentExecutionResponse)
 async def execute_agent_pdf(
+    http_request: Request,
     request: str = Form(...),
     pdf_file: UploadFile = File(...),
     current_user: User = Depends(authenticate_user_by_token)
@@ -516,6 +517,9 @@ async def execute_agent_pdf(
     - pdf_file: PDF file to process
     """
     try:
+        # Extract client IP
+        client_ip = get_client_ip(http_request)
+        
         # Parse JSON request data
         try:
             request_data = json.loads(request)
@@ -583,12 +587,17 @@ async def execute_agent_pdf(
         async for db in get_async_session():
             for i, chunk in enumerate(text_chunks):
                 # Create job for this chunk
+                # Count tokens in the chunk
+                chunk_token_count = count_tokens(chunk, model)
+                
                 job_data = JobCreate(
                     name=f"{agent_name}-pdf-chunk-{i+1}",
                     user_id=user_id,
                     provider=provider,
                     model=model,
-                    status="created"
+                    status="created",
+                    client_ip=client_ip,
+                    token_count=chunk_token_count
                 )
                 
                 job = await JobService.create_job(db, job_data)
@@ -746,6 +755,7 @@ Format your response as a well-structured report."""
 
 @app.post("/agent/execute-docx", response_model=DocxAgentExecutionResponse)
 async def execute_agent_docx(
+    http_request: Request,
     agent_name: str = Form(...),
     provider: str = Form(...),
     model: str = Form(...),
@@ -766,6 +776,8 @@ async def execute_agent_docx(
     6. Returns structured response with job details and merged result
     """
     try:
+        # Extract client IP
+        client_ip = get_client_ip(http_request)
         # Validate DOCX file
         if not docx_file.filename.lower().endswith('.docx'):
             raise HTTPException(
@@ -818,12 +830,17 @@ async def execute_agent_docx(
         async for db in get_async_session():
             for i, chunk in enumerate(text_chunks):
                 # Create job for this chunk
+                # Count tokens in the chunk
+                chunk_token_count = count_tokens(chunk, model)
+                
                 job_data = JobCreate(
                     name=f"{agent_name}-docx-chunk-{i+1}",
                     user_id=user_id,
                     provider=provider,
                     model=model,
-                    status="created"
+                    status="created",
+                    client_ip=client_ip,
+                    token_count=chunk_token_count
                 )
                 
                 job = await JobService.create_job(db, job_data)

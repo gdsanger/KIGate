@@ -2,6 +2,9 @@
 """
 Manual test script for rate limiting functionality
 
+⚠️  WARNING: This is a test/demo script that displays API credentials.
+    Do NOT use this in production. Credentials are displayed for manual testing only.
+
 This script demonstrates and tests the rate limiting features:
 1. Creates a test user with custom limits
 2. Makes requests until rate limit is hit

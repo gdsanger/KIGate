@@ -98,6 +98,7 @@ async def create_user(
     db: AsyncSession = Depends(get_async_session),
     name: str = Form(...),
     email: Optional[str] = Form(None),
+    role: str = Form("user"),
     is_active: bool = Form(False),
     admin_user: str = Depends(get_admin_user)
 ):
@@ -106,6 +107,7 @@ async def create_user(
         user_data = UserCreate(
             name=name,
             email=email if email else None,
+            role=role,
             is_active=is_active
         )
         
@@ -144,6 +146,7 @@ async def update_user(
     db: AsyncSession = Depends(get_async_session),
     name: str = Form(...),
     email: Optional[str] = Form(None),
+    role: str = Form("user"),
     is_active: bool = Form(False),
     admin_user: str = Depends(get_admin_user)
 ):
@@ -152,6 +155,7 @@ async def update_user(
         user_data = UserUpdate(
             name=name,
             email=email if email else None,
+            role=role,
             is_active=is_active
         )
         
@@ -730,6 +734,7 @@ async def create_application_user(
     name: str = Form(...),
     email: str = Form(...),
     password: Optional[str] = Form(None),
+    role: str = Form("user"),
     is_active: bool = Form(False),
     admin_user: str = Depends(get_admin_user)
 ):
@@ -739,6 +744,7 @@ async def create_application_user(
             name=name,
             email=email,
             password=password if password else None,
+            role=role,
             is_active=is_active
         )
         
@@ -788,6 +794,7 @@ async def update_application_user(
     db: AsyncSession = Depends(get_async_session),
     name: str = Form(...),
     email: str = Form(...),
+    role: str = Form("user"),
     is_active: bool = Form(False),
     admin_user: str = Depends(get_admin_user)
 ):
@@ -796,6 +803,7 @@ async def update_application_user(
         user_data = ApplicationUserUpdate(
             name=name,
             email=email,
+            role=role,
             is_active=is_active
         )
         

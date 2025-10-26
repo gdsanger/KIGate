@@ -55,6 +55,8 @@ def migrate_database_schema(connection):
     SQLAlchemy would fail with the error:
     "table jobs has no column named duration" when trying to INSERT new jobs.
     
+    Also adds 'role' column to users and application_users tables if missing.
+    
     The migration is safe to run multiple times and on fresh databases.
     """
     import logging
@@ -78,6 +80,38 @@ def migrate_database_schema(connection):
                 logger.info("Database migration: Successfully added 'duration' column to jobs table")
             else:
                 logger.debug("Database migration: 'duration' column already exists in jobs table")
+        
+        # Check if users table exists and add role column if missing
+        users_result = connection.execute(
+            text("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+        ).fetchone()
+        
+        if users_result:
+            columns_result = connection.execute(text("PRAGMA table_info(users)")).fetchall()
+            column_names = [col[1] for col in columns_result]
+            
+            if 'role' not in column_names:
+                logger.info("Database migration: Adding missing 'role' column to users table")
+                connection.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'user' NOT NULL"))
+                logger.info("Database migration: Successfully added 'role' column to users table")
+            else:
+                logger.debug("Database migration: 'role' column already exists in users table")
+        
+        # Check if application_users table exists and add role column if missing
+        app_users_result = connection.execute(
+            text("SELECT name FROM sqlite_master WHERE type='table' AND name='application_users'")
+        ).fetchone()
+        
+        if app_users_result:
+            columns_result = connection.execute(text("PRAGMA table_info(application_users)")).fetchall()
+            column_names = [col[1] for col in columns_result]
+            
+            if 'role' not in column_names:
+                logger.info("Database migration: Adding missing 'role' column to application_users table")
+                connection.execute(text("ALTER TABLE application_users ADD COLUMN role VARCHAR(20) DEFAULT 'user' NOT NULL"))
+                logger.info("Database migration: Successfully added 'role' column to application_users table")
+            else:
+                logger.debug("Database migration: 'role' column already exists in application_users table")
                 
     except Exception as e:
         logger.error(f"Error during database migration: {str(e)}")

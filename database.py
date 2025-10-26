@@ -14,6 +14,10 @@ from model.application_user import ApplicationUser
 from model.github_issue_record import GitHubIssueRecord
 # Import Repository model to ensure it's registered with Base
 from model.repository import Repository
+# Import Settings model to ensure it's registered with Base
+from model.settings import Settings
+# Import AIAuditLog model to ensure it's registered with Base
+from model.ai_audit_log import AIAuditLog
 
 # Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./kigate.db")
@@ -52,6 +56,7 @@ def migrate_database_schema(connection):
     
     This function addresses the issue where existing databases may have been created 
     before new columns were added to models. Without this migration,
+    SQLAlchemy would fail with "table has no column named X" errors.
     SQLAlchemy would fail when trying to INSERT new records with missing columns.
     
     The migration is safe to run multiple times and on fresh databases.
@@ -75,6 +80,16 @@ def migrate_database_schema(connection):
                 logger.info("Database migration: Adding missing 'duration' column to jobs table")
                 connection.execute(text("ALTER TABLE jobs ADD COLUMN duration INTEGER"))
                 logger.info("Database migration: Successfully added 'duration' column to jobs table")
+            
+            if 'client_ip' not in column_names:
+                logger.info("Database migration: Adding missing 'client_ip' column to jobs table")
+                connection.execute(text("ALTER TABLE jobs ADD COLUMN client_ip VARCHAR(45)"))
+                logger.info("Database migration: Successfully added 'client_ip' column to jobs table")
+            
+            if 'token_count' not in column_names:
+                logger.info("Database migration: Adding missing 'token_count' column to jobs table")
+                connection.execute(text("ALTER TABLE jobs ADD COLUMN token_count INTEGER"))
+                logger.info("Database migration: Successfully added 'token_count' column to jobs table")
             else:
                 logger.debug("Database migration: 'duration' column already exists in jobs table")
         

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Query, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Depends, Query, UploadFile, File, Form, Request
 from fastapi.openapi.utils import get_openapi
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -9,8 +9,9 @@ import json
 import uuid
 import yaml
 import time
+import logging
 
-from database import init_db, close_db
+from database import init_db, close_db, get_async_session
 from admin_routes import admin_router
 from auth import authenticate_user_by_token, get_current_user_by_api_key
 from model.user import User
@@ -21,6 +22,7 @@ from model.pdf_agent_execution import PDFAgentExecutionRequest, PDFAgentExecutio
 from model.docx_agent_execution import DocxAgentExecutionRequest, DocxAgentExecutionResponse
 from model.job import JobCreate
 from model.github_issue import GitHubIssueRequest, GitHubIssueResponse
+from model.ai_audit_log import AIAuditLogCreate
 from service.agent_service import AgentService
 from service.job_service import JobService
 from service.ai_service import send_ai_request
@@ -28,23 +30,98 @@ from service.github_service import GitHubService
 from service.github_issue_processor import GitHubIssueProcessor
 from service.pdf_service import PDFService
 from service.docx_service import DocxService
+from service.settings_service import SettingsService
+from service.ai_audit_log_service import AIAuditLogService
 from controller.api_openai import process_openai_request
-from database import get_async_session
 from controller.api_gemini import process_gemini_request
 from controller.api_claude import process_claude_request
+from logging_config import LoggingConfig
+from utils.request_utils import get_client_ip, extract_auth_token
+from utils.token_counter import count_tokens
 from pydantic import ValidationError
+
+# Initialize logging system
+LoggingConfig.setup_logging()
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    logger.info("Starting KIGate API...")
     await init_db()
+    
+    # Initialize default settings and load Sentry configuration
+    async for db in get_async_session():
+        await SettingsService.initialize_default_settings(db)
+        await db.commit()
+        
+        # Load Sentry settings and initialize if configured
+        sentry_dsn = await SettingsService.get_setting_value(db, "sentry_dsn")
+        if sentry_dsn:
+            sentry_env = await SettingsService.get_setting_value(db, "sentry_environment", "production")
+            sentry_rate_str = await SettingsService.get_setting_value(db, "sentry_traces_sample_rate", "0.1")
+            try:
+                sentry_rate = float(sentry_rate_str)
+            except (ValueError, TypeError):
+                sentry_rate = 0.1
+            
+            LoggingConfig.setup_sentry(dsn=sentry_dsn, environment=sentry_env, 
+                                      traces_sample_rate=sentry_rate)
+        
+        break
+    
+    logger.info("KIGate API started successfully")
     yield
     # Shutdown
+    logger.info("Shutting down KIGate API...")
     await close_db()
+    logger.info("KIGate API shutdown complete")
 
 
 app = FastAPI(lifespan=lifespan)
 
+# Middleware for audit logging
+@app.middleware("http")
+async def audit_log_middleware(request: Request, call_next):
+    """Middleware to log all API calls to audit log"""
+    # Only log API endpoints (not admin, static, health, etc.)
+    if request.url.path.startswith("/api/"):
+        # Extract request information
+        client_ip = get_client_ip(request)
+        api_endpoint = request.url.path
+        auth_token = extract_auth_token(request)
+        
+        # For audit logging, we'll capture basic info without reading body
+        # Body reading in middleware causes issues with FastAPI request parsing
+        payload_preview = f"Method: {request.method}, Path: {request.url.path}"
+        
+        # Call the endpoint first
+        response = await call_next(request)
+        
+        # Log to audit log asynchronously after response
+        try:
+            async for db in get_async_session():
+                # Mask the token for security
+                masked_token = AIAuditLogService.mask_secret(auth_token) if auth_token else None
+                
+                audit_log_data = AIAuditLogCreate(
+                    client_ip=client_ip,
+                    api_endpoint=api_endpoint,
+                    client_secret=masked_token,
+                    payload_preview=payload_preview,
+                    status_code=response.status_code
+                )
+                
+                await AIAuditLogService.create_log(db, audit_log_data)
+                await db.commit()
+                break
+        except Exception as e:
+            logger.error(f"Error creating audit log: {str(e)}")
+        
+        return response
+    else:
+        # For non-API endpoints, just pass through
+        return await call_next(request)
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -194,7 +271,7 @@ async def openai_endpoint(
         )
 
 @app.post("/agent/execute", response_model=AgentExecutionResponse)
-async def execute_agent(request: AgentExecutionRequest, current_user: User = Depends(authenticate_user_by_token)):
+async def execute_agent(request: Request, agent_request: AgentExecutionRequest, current_user: User = Depends(authenticate_user_by_token)):
     """
     Execute an agent with the specified configuration
     
@@ -209,36 +286,55 @@ async def execute_agent(request: AgentExecutionRequest, current_user: User = Dep
     from service.rate_limit_service import RateLimitService
     
     try:
+        # Extract client IP
+        client_ip = get_client_ip(request)
+        
         # Load agent configuration from YAML
-        agent = await AgentService.get_agent_by_name(request.agent_name)
+        agent = await AgentService.get_agent_by_name(agent_request.agent_name)
         if not agent:
             raise HTTPException(
                 status_code=404, 
-                detail=f"Agent '{request.agent_name}' not found"
+                detail=f"Agent '{agent_request.agent_name}' not found"
             )
         
         # Validate provider matches agent configuration
-        if request.provider.lower() != agent.provider.lower():
+        if agent_request.provider.lower() != agent.provider.lower():
             raise HTTPException(
                 status_code=400,
-                detail=f"Provider '{request.provider}' does not match agent configuration '{agent.provider}'"
+                detail=f"Provider '{agent_request.provider}' does not match agent configuration '{agent.provider}'"
             )
         
         # Validate model matches agent configuration  
-        if request.model.lower() != agent.model.lower():
+        if agent_request.model.lower() != agent.model.lower():
             raise HTTPException(
                 status_code=400,
-                detail=f"Model '{request.model}' does not match agent configuration '{agent.model}'"
+                detail=f"Model '{agent_request.model}' does not match agent configuration '{agent.model}'"
             )
         
         # Create job in database
         async for db in get_async_session():
+            # Prepare AI request by combining agent configuration with user message
+            # Apply parameters to the agent task if provided
+            processed_task = agent.task
+            if agent_request.parameters:
+                # Process parameters into the task using efficient string joining
+                param_lines = [f"{key}: {value}" for key, value in agent_request.parameters.items()]
+                param_context = "\n".join(param_lines)
+                processed_task = f"{agent.task}\n\nParameters:\n{param_context}"
+            
+            combined_message = f"{agent.role}\n\n{processed_task}\n\nUser message: {agent_request.message}"
+            
+            # Count tokens in the combined message
+            token_count = count_tokens(combined_message, agent_request.model)
+            
             job_data = JobCreate(
-                name=f"{request.agent_name}-job",
-                user_id=request.user_id,
-                provider=request.provider,
-                model=request.model,
-                status="created"
+                name=f"{agent_request.agent_name}-job",
+                user_id=agent_request.user_id,
+                provider=agent_request.provider,
+                model=agent_request.model,
+                status="created",
+                client_ip=client_ip,
+                token_count=token_count
             )
             
             job = await JobService.create_job(db, job_data)
@@ -246,21 +342,10 @@ async def execute_agent(request: AgentExecutionRequest, current_user: User = Dep
             # Track start time for duration calculation
             start_time = time.time()
             
-            # Prepare AI request by combining agent configuration with user message
-            # Apply parameters to the agent task if provided
-            processed_task = agent.task
-            if request.parameters:
-                # Process parameters into the task using efficient string joining
-                param_lines = [f"{key}: {value}" for key, value in request.parameters.items()]
-                param_context = "\n".join(param_lines)
-                processed_task = f"{agent.task}\n\nParameters:\n{param_context}"
-            
-            combined_message = f"{agent.role}\n\n{processed_task}\n\nUser message: {request.message}"
-            
             ai_request = aiapirequest(
                 job_id=job.id,
-                user_id=request.user_id,
-                model=request.model,
+                user_id=agent_request.user_id,
+                model=agent_request.model,
                 message=combined_message
             )
             
@@ -270,7 +355,7 @@ async def execute_agent(request: AgentExecutionRequest, current_user: User = Dep
             
             try:
                 # Send request to AI provider
-                ai_result = await send_ai_request(ai_request, request.provider)
+                ai_result = await send_ai_request(ai_request, agent_request.provider)
                 
                 # Record the request and token usage for rate limiting
                 await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
@@ -295,9 +380,9 @@ async def execute_agent(request: AgentExecutionRequest, current_user: User = Dep
                 
                 return AgentExecutionResponse(
                     job_id=job.id,
-                    agent=request.agent_name,
-                    provider=request.provider,
-                    model=request.model,
+                    agent=agent_request.agent_name,
+                    provider=agent_request.provider,
+                    model=agent_request.model,
                     status=status,
                     result=result
                 )
@@ -456,6 +541,7 @@ async def create_github_issue(request: GitHubIssueRequest, current_user: User = 
 
 @app.post("/agent/execute-pdf", response_model=PDFAgentExecutionResponse)
 async def execute_agent_pdf(
+    http_request: Request,
     request: str = Form(...),
     pdf_file: UploadFile = File(...),
     current_user: User = Depends(authenticate_user_by_token)
@@ -477,6 +563,9 @@ async def execute_agent_pdf(
     - pdf_file: PDF file to process
     """
     try:
+        # Extract client IP
+        client_ip = get_client_ip(http_request)
+        
         # Parse JSON request data
         try:
             request_data = json.loads(request)
@@ -544,12 +633,17 @@ async def execute_agent_pdf(
         async for db in get_async_session():
             for i, chunk in enumerate(text_chunks):
                 # Create job for this chunk
+                # Count tokens in the chunk
+                chunk_token_count = count_tokens(chunk, model)
+                
                 job_data = JobCreate(
                     name=f"{agent_name}-pdf-chunk-{i+1}",
                     user_id=user_id,
                     provider=provider,
                     model=model,
-                    status="created"
+                    status="created",
+                    client_ip=client_ip,
+                    token_count=chunk_token_count
                 )
                 
                 job = await JobService.create_job(db, job_data)
@@ -711,6 +805,7 @@ Format your response as a well-structured report."""
 
 @app.post("/agent/execute-docx", response_model=DocxAgentExecutionResponse)
 async def execute_agent_docx(
+    http_request: Request,
     agent_name: str = Form(...),
     provider: str = Form(...),
     model: str = Form(...),
@@ -731,6 +826,8 @@ async def execute_agent_docx(
     6. Returns structured response with job details and merged result
     """
     try:
+        # Extract client IP
+        client_ip = get_client_ip(http_request)
         # Validate DOCX file
         if not docx_file.filename.lower().endswith('.docx'):
             raise HTTPException(
@@ -783,12 +880,17 @@ async def execute_agent_docx(
         async for db in get_async_session():
             for i, chunk in enumerate(text_chunks):
                 # Create job for this chunk
+                # Count tokens in the chunk
+                chunk_token_count = count_tokens(chunk, model)
+                
                 job_data = JobCreate(
                     name=f"{agent_name}-docx-chunk-{i+1}",
                     user_id=user_id,
                     provider=provider,
                     model=model,
-                    status="created"
+                    status="created",
+                    client_ip=client_ip,
+                    token_count=chunk_token_count
                 )
                 
                 job = await JobService.create_job(db, job_data)

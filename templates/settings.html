@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Einstellungen</h1>
+</div>
+
+{% if message %}
+<div class="alert alert-{{ message_type }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Sentry Integration</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/admin/settings/update">
+                    <div class="mb-3">
+                        <label for="sentry_dsn" class="form-label">Sentry DSN</label>
+                        <input type="text" class="form-control" id="sentry_dsn" name="setting_sentry_dsn" 
+                               value="{% for s in settings %}{% if s.key == 'sentry_dsn' %}{{ s.value or '' }}{% endif %}{% endfor %}"
+                               placeholder="https://xxxxx@xxxxx.ingest.sentry.io/xxxxx">
+                        <input type="hidden" name="secret_sentry_dsn" value="true">
+                        <div class="form-text">Sentry DSN für Error Tracking</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="sentry_environment" class="form-label">Sentry Environment</label>
+                        <select class="form-select" id="sentry_environment" name="setting_sentry_environment">
+                            {% set current_env = 'production' %}
+                            {% for s in settings %}
+                                {% if s.key == 'sentry_environment' %}
+                                    {% set current_env = s.value %}
+                                {% endif %}
+                            {% endfor %}
+                            <option value="production" {% if current_env == 'production' %}selected{% endif %}>Production</option>
+                            <option value="staging" {% if current_env == 'staging' %}selected{% endif %}>Staging</option>
+                            <option value="development" {% if current_env == 'development' %}selected{% endif %}>Development</option>
+                        </select>
+                        <div class="form-text">Environment für Sentry (production, staging, development)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="sentry_traces_sample_rate" class="form-label">Sentry Traces Sample Rate</label>
+                        <input type="number" class="form-control" id="sentry_traces_sample_rate" 
+                               name="setting_sentry_traces_sample_rate" 
+                               value="{% for s in settings %}{% if s.key == 'sentry_traces_sample_rate' %}{{ s.value or '0.1' }}{% endif %}{% endfor %}"
+                               step="0.1" min="0" max="1">
+                        <div class="form-text">Prozentsatz der Traces die erfasst werden (0.0 bis 1.0)</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Hinweis:</strong> Änderungen an den Sentry-Einstellungen werden erst nach einem Neustart der Anwendung vollständig aktiv.
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Einstellungen speichern
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Logging Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Log-Dateien:</strong> Logs werden im <code>Logs/</code> Ordner gespeichert</p>
+                <p><strong>Rotation:</strong> Tägliche Rotation mit 7-Tage-Aufbewahrung</p>
+                <p><strong>Audit Logs:</strong> Alle API-Aufrufe werden im AI Audit Log protokolliert</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

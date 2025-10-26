@@ -1173,3 +1173,125 @@ async def get_active_repositories(
     return [{"full_name": repo.full_name, "description": repo.description} for repo in repositories]
 
 
+# Settings Management Routes
+@admin_router.get("/settings", response_class=HTMLResponse)
+async def admin_settings(
+    request: Request,
+    db: AsyncSession = Depends(get_async_session),
+    message: Optional[str] = None,
+    message_type: Optional[str] = None,
+    admin_user: str = Depends(get_admin_user)
+):
+    """Settings management page"""
+    from service.settings_service import SettingsService
+    settings = await SettingsService.get_all_settings(db)
+    
+    return templates.TemplateResponse("settings.html", {
+        "request": request,
+        "settings": settings,
+        "message": message,
+        "message_type": message_type
+    })
+
+
+@admin_router.post("/settings/update")
+async def update_settings(
+    request: Request,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Update settings"""
+    from service.settings_service import SettingsService
+    from model.settings import SettingsUpdate
+    
+    try:
+        # Parse form data
+        form_data = await request.form()
+        
+        # Update each setting
+        for key in form_data:
+            if key.startswith("setting_"):
+                setting_key = key.replace("setting_", "")
+                value = form_data.get(key)
+                
+                # Check if this is a secret field
+                is_secret_key = f"secret_{setting_key}"
+                is_secret = is_secret_key in form_data
+                
+                # Update or create setting
+                await SettingsService.upsert_setting(
+                    db, 
+                    setting_key, 
+                    value,
+                    is_secret=is_secret
+                )
+        
+        await db.commit()
+        
+        # Reload Sentry if DSN was updated
+        sentry_dsn = await SettingsService.get_setting_value(db, "sentry_dsn")
+        if sentry_dsn:
+            from logging_config import LoggingConfig
+            sentry_env = await SettingsService.get_setting_value(db, "sentry_environment", "production")
+            sentry_rate_str = await SettingsService.get_setting_value(db, "sentry_traces_sample_rate", "0.1")
+            try:
+                sentry_rate = float(sentry_rate_str)
+            except (ValueError, TypeError):
+                sentry_rate = 0.1
+            
+            LoggingConfig.setup_sentry(dsn=sentry_dsn, environment=sentry_env, 
+                                      traces_sample_rate=sentry_rate)
+        
+        return RedirectResponse(
+            url=f"/admin/settings?message={quote('Einstellungen wurden erfolgreich aktualisiert')}&message_type=success",
+            status_code=303
+        )
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error updating settings: {str(e)}")
+        return RedirectResponse(
+            url=f"/admin/settings?message={quote(f'Fehler beim Aktualisieren der Einstellungen: {str(e)}')}&message_type=danger",
+            status_code=303
+        )
+
+
+# AI Audit Log Routes
+@admin_router.get("/audit-logs", response_class=HTMLResponse)
+async def admin_audit_logs(
+    request: Request,
+    page: int = 1,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """AI Audit Log page with pagination"""
+    from service.ai_audit_log_service import AIAuditLogService
+    
+    try:
+        # Ensure page is at least 1
+        page = max(1, page)
+        per_page = 50
+        
+        # Get logs with pagination
+        logs, total_count = await AIAuditLogService.get_logs_paginated(db, page=page, per_page=per_page)
+        
+        # Calculate pagination info
+        total_pages = (total_count + per_page - 1) // per_page
+        has_prev = page > 1
+        has_next = page < total_pages
+        
+        return templates.TemplateResponse("audit_logs.html", {
+            "request": request,
+            "logs": logs,
+            "current_page": page,
+            "total_pages": total_pages,
+            "total_count": total_count,
+            "has_prev": has_prev,
+            "has_next": has_next,
+            "prev_page": page - 1 if has_prev else None,
+            "next_page": page + 1 if has_next else None,
+        })
+        
+    except Exception as e:
+        logger.error(f"Error loading audit logs page: {str(e)}")
+        raise HTTPException(status_code=500, detail="Fehler beim Laden der Audit Logs")
+

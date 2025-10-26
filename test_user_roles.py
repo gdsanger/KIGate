@@ -100,15 +100,20 @@ async def test_user_roles():
             
             # Test 6: Verify role validation
             print("\n6. Testing role validation...")
+            validation_failed = False
             try:
                 invalid_user = UserCreate(
                     name="Invalid User",
                     email="invalid@example.com",
                     role="superuser"  # Invalid role
                 )
+                # If we get here, validation didn't work
                 print("✗ Should have failed validation for invalid role")
             except Exception as e:
+                validation_failed = True
                 print(f"✓ Role validation working: {type(e).__name__}")
+            
+            assert validation_failed, "Role validation should have raised an exception"
             
             print("\n✅ All tests passed successfully!")
             

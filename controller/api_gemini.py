@@ -28,10 +28,11 @@ class GeminiController:
             strict_mode: If True, raises error when API key is missing
             api_key: Optional API key to use (if not provided, falls back to environment variable)
         """
+        import os
         self.client = None
         
         # Use provided API key or fallback to environment variable
-        effective_api_key = api_key or GEMINI_API_KEY
+        effective_api_key = api_key or os.environ.get("GEMINI_API_KEY", "") or GEMINI_API_KEY
         
         if effective_api_key:
             try:

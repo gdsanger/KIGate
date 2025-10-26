@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends, Query, UploadFile, File, Form
 from fastapi.openapi.utils import get_openapi
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from typing import Optional, List
 import json
@@ -42,6 +43,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 def custom_api():
     if app.openapi_schema:

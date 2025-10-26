@@ -1,8 +1,10 @@
 from fastapi import FastAPI, HTTPException, Depends, Query, UploadFile, File, Form, Request
 from fastapi.openapi.utils import get_openapi
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from typing import Optional, List
+from sqlalchemy.ext.asyncio import AsyncSession
 import json
 import uuid
 import yaml
@@ -120,6 +122,8 @@ async def audit_log_middleware(request: Request, call_next):
     else:
         # For non-API endpoints, just pass through
         return await call_next(request)
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 def custom_api():
     if app.openapi_schema:
@@ -233,16 +237,28 @@ async def get_agents(api_key: Optional[str] = Query(None, description="API Key i
 
 
 @app.post("/api/openai", response_model=aiapiresult)
-async def openai_endpoint(request: aiapirequest, current_user: User = Depends(authenticate_user_by_token)):
+async def openai_endpoint(
+    request: aiapirequest, 
+    current_user: User = Depends(authenticate_user_by_token),
+    db: AsyncSession = Depends(get_async_session)
+):
     """
     OpenAI API endpoint that processes AI requests
     
     Accepts aiapirequest objects and returns aiapiresult objects.
     Requires authentication via Bearer token.
+    Rate limited by RPM and TPM.
     """
+    from service.rate_limit_service import RateLimitService
+    
     try:
         # Process the request using the OpenAI controller
         result = await process_openai_request(request)
+        
+        # Record the request and token usage for rate limiting
+        await RateLimitService.record_request(db, current_user, result.tokens_used)
+        await db.commit()
+        
         return result
     except Exception as e:
         # If there's an unexpected error in the endpoint itself
@@ -265,7 +281,10 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
     3. Combines agent role/task with user message
     4. Routes request to appropriate AI provider
     5. Returns structured response with job details and result
+    Rate limited by RPM and TPM.
     """
+    from service.rate_limit_service import RateLimitService
+    
     try:
         # Extract client IP
         client_ip = get_client_ip(request)
@@ -338,6 +357,9 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
                 # Send request to AI provider
                 ai_result = await send_ai_request(ai_request, agent_request.provider)
                 
+                # Record the request and token usage for rate limiting
+                await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
+                
                 # Calculate duration in milliseconds
                 duration_ms = int((time.time() - start_time) * 1000)
                 
@@ -393,16 +415,28 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
 
 
 @app.post("/api/gemini", response_model=aiapiresult)
-async def gemini_endpoint(request: aiapirequest, current_user: User = Depends(authenticate_user_by_token)):
+async def gemini_endpoint(
+    request: aiapirequest, 
+    current_user: User = Depends(authenticate_user_by_token),
+    db: AsyncSession = Depends(get_async_session)
+):
     """
     Google Gemini API endpoint that processes AI requests
     
     Accepts aiapirequest objects and returns aiapiresult objects.
     Requires authentication via Bearer token.
+    Rate limited by RPM and TPM.
     """
+    from service.rate_limit_service import RateLimitService
+    
     try:
         # Process the request using the Gemini controller
         result = await process_gemini_request(request)
+        
+        # Record the request and token usage for rate limiting
+        await RateLimitService.record_request(db, current_user, result.tokens_used)
+        await db.commit()
+        
         return result
     except Exception as e:
         # If there's an unexpected error in the endpoint itself
@@ -415,16 +449,28 @@ async def gemini_endpoint(request: aiapirequest, current_user: User = Depends(au
         )
       
 @app.post("/api/claude", response_model=aiapiresult)
-async def claude_endpoint(request: aiapirequest, current_user: User = Depends(authenticate_user_by_token)):
+async def claude_endpoint(
+    request: aiapirequest, 
+    current_user: User = Depends(authenticate_user_by_token),
+    db: AsyncSession = Depends(get_async_session)
+):
     """
     Claude API endpoint that processes AI requests
     
     Accepts aiapirequest objects and returns aiapiresult objects.
     Requires authentication via Bearer token.
+    Rate limited by RPM and TPM.
     """
+    from service.rate_limit_service import RateLimitService
+    
     try:
         # Process the request using the Claude controller
         result = await process_claude_request(request)
+        
+        # Record the request and token usage for rate limiting
+        await RateLimitService.record_request(db, current_user, result.tokens_used)
+        await db.commit()
+        
         return result
     except Exception as e:
         # If there's an unexpected error in the endpoint itself
@@ -635,6 +681,10 @@ async def execute_agent_pdf(
                 try:
                     # Send request to AI provider
                     ai_result = await send_ai_request(ai_request, provider)
+                    
+                    # Record the request and token usage for rate limiting (per chunk)
+                    from service.rate_limit_service import RateLimitService
+                    await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
                     
                     # Calculate duration in milliseconds
                     duration_ms = int((time.time() - start_time) * 1000)
@@ -872,6 +922,10 @@ async def execute_agent_docx(
                 try:
                     # Send request to AI provider
                     ai_result = await send_ai_request(ai_request, provider)
+                    
+                    # Record the request and token usage for rate limiting (per chunk)
+                    from service.rate_limit_service import RateLimitService
+                    await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
                     
                     # Calculate duration in milliseconds
                     duration_ms = int((time.time() - start_time) * 1000)

@@ -89,19 +89,27 @@ class GeminiController:
             
             response = model.generate_content(request.message)
             
-            # Extract content from response
+            # Extract content and token usage from response
             if response and response.text:
                 content = response.text
                 
+                # Get token usage if available
+                tokens_used = 0
+                if hasattr(response, 'usage_metadata') and response.usage_metadata:
+                    tokens_used = response.usage_metadata.total_token_count
+                    logger.debug(f"Token usage for job_id {request.job_id}: {tokens_used}")
+                
                 logger.info(f"Successfully received response for job_id: {request.job_id}")
                 
-                return aiapiresult(
+                result = aiapiresult(
                     job_id=request.job_id,
                     user_id=request.user_id,
                     content=content,
                     success=True,
                     error_message=None
                 )
+                result.tokens_used = tokens_used
+                return result
             else:
                 error_msg = "No response text returned from Gemini API"
                 logger.error(f"Error for job_id {request.job_id}: {error_msg}")

@@ -96,21 +96,29 @@ class ClaudeController:
                 ]
             )
             
-            # Extract content from response
+            # Extract content and token usage from response
             if response.content and len(response.content) > 0:
                 content = response.content[0].text
                 if content is None:
                     content = ""
                 
+                # Get token usage if available
+                tokens_used = 0
+                if hasattr(response, 'usage') and response.usage:
+                    tokens_used = response.usage.input_tokens + response.usage.output_tokens
+                    logger.debug(f"Token usage for job_id {request.job_id}: {tokens_used}")
+                
                 logger.info(f"Successfully received response for job_id: {request.job_id}")
                 
-                return aiapiresult(
+                result = aiapiresult(
                     job_id=request.job_id,
                     user_id=request.user_id,
                     content=content,
                     success=True,
                     error_message=None
                 )
+                result.tokens_used = tokens_used
+                return result
             else:
                 error_msg = "No response content returned from Claude API"
                 logger.error(f"Error for job_id {request.job_id}: {error_msg}")

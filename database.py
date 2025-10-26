@@ -57,6 +57,7 @@ def migrate_database_schema(connection):
     This function addresses the issue where existing databases may have been created 
     before new columns were added to models. Without this migration,
     SQLAlchemy would fail with "table has no column named X" errors.
+    SQLAlchemy would fail when trying to INSERT new records with missing columns.
     
     The migration is safe to run multiple times and on fresh databases.
     """
@@ -65,7 +66,7 @@ def migrate_database_schema(connection):
     logger = logging.getLogger(__name__)
     
     try:
-        # Check if jobs table exists
+        # Check if jobs table exists and add duration column if missing
         inspector_result = connection.execute(
             text("SELECT name FROM sqlite_master WHERE type='table' AND name='jobs'")
         ).fetchone()
@@ -89,11 +90,53 @@ def migrate_database_schema(connection):
                 logger.info("Database migration: Adding missing 'token_count' column to jobs table")
                 connection.execute(text("ALTER TABLE jobs ADD COLUMN token_count INTEGER"))
                 logger.info("Database migration: Successfully added 'token_count' column to jobs table")
+            else:
+                logger.debug("Database migration: 'duration' column already exists in jobs table")
+        
+        # Check if users table exists and add rate limiting columns if missing
+        users_result = connection.execute(
+            text("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+        ).fetchone()
+        
+        if users_result:
+            # Check which columns exist in users table
+            columns_result = connection.execute(text("PRAGMA table_info(users)")).fetchall()
+            column_names = [col[1] for col in columns_result]  # col[1] is the column name
+            
+            # Add rpm_limit column if missing
+            if 'rpm_limit' not in column_names:
+                logger.info("Database migration: Adding missing 'rpm_limit' column to users table")
+                connection.execute(text("ALTER TABLE users ADD COLUMN rpm_limit INTEGER NOT NULL DEFAULT 20"))
+                logger.info("Database migration: Successfully added 'rpm_limit' column to users table")
+            
+            # Add tpm_limit column if missing
+            if 'tpm_limit' not in column_names:
+                logger.info("Database migration: Adding missing 'tpm_limit' column to users table")
+                connection.execute(text("ALTER TABLE users ADD COLUMN tpm_limit INTEGER NOT NULL DEFAULT 50000"))
+                logger.info("Database migration: Successfully added 'tpm_limit' column to users table")
+            
+            # Add current_rpm column if missing
+            if 'current_rpm' not in column_names:
+                logger.info("Database migration: Adding missing 'current_rpm' column to users table")
+                connection.execute(text("ALTER TABLE users ADD COLUMN current_rpm INTEGER NOT NULL DEFAULT 0"))
+                logger.info("Database migration: Successfully added 'current_rpm' column to users table")
+            
+            # Add current_tpm column if missing
+            if 'current_tpm' not in column_names:
+                logger.info("Database migration: Adding missing 'current_tpm' column to users table")
+                connection.execute(text("ALTER TABLE users ADD COLUMN current_tpm INTEGER NOT NULL DEFAULT 0"))
+                logger.info("Database migration: Successfully added 'current_tpm' column to users table")
+            
+            # Add last_reset_time column if missing
+            if 'last_reset_time' not in column_names:
+                logger.info("Database migration: Adding missing 'last_reset_time' column to users table")
+                connection.execute(text("ALTER TABLE users ADD COLUMN last_reset_time DATETIME"))
+                logger.info("Database migration: Successfully added 'last_reset_time' column to users table")
                 
     except Exception as e:
         logger.error(f"Error during database migration: {str(e)}")
         # Don't raise the exception to avoid breaking the application startup
-        # The column might be added by create_all if this is a fresh database
+        # The columns might be added by create_all if this is a fresh database
 
 
 async def init_db():

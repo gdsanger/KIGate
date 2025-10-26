@@ -10,22 +10,30 @@ The KIGate system now supports configurable AI providers with dynamic model mana
 
 ## Supported Providers
 
+The system automatically normalizes provider names to handle common variations and display names. The following providers are supported:
+
 ### OpenAI
 - **Required Configuration**: API Key
 - **Optional Configuration**: Organization ID
 - **Model Fetching**: Automatic via OpenAI API
+- **Accepted Names**: "openai", "OpenAI", "OPENAI"
 
 ### Google Gemini
 - **Required Configuration**: API Key
 - **Model Fetching**: Automatic via Google Generative AI API
+- **Accepted Names**: "gemini", "Gemini", "GEMINI", "Google Gemini", "google gemini" (case-insensitive)
 
 ### Claude (Anthropic)
 - **Required Configuration**: API Key
 - **Model Fetching**: Pre-configured list of available models
+- **Accepted Names**: "claude", "Claude", "CLAUDE", "Anthropic Claude", "anthropic claude"
 
 ### Ollama
 - **Required Configuration**: API URL (e.g., http://localhost:11434)
 - **Model Fetching**: Automatic via Ollama API
+- **Accepted Names**: "ollama", "Ollama", "OLLAMA"
+
+> **Note**: The system automatically normalizes provider names, so you can use display names like "Google Gemini" or "Anthropic Claude" interchangeably with the short forms like "gemini" or "claude". Normalization is case-insensitive and handles extra whitespace.
 
 ## Configuration Steps
 

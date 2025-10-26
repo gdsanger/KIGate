@@ -30,6 +30,8 @@ Processes AI requests using Google Gemini models.
 
 **Authentication**: Bearer token required (client_id:client_secret)
 
+> **Note**: The system's AI service router automatically normalizes provider names, so requests can specify the provider as "gemini", "Gemini", "Google Gemini", or "google gemini" (case-insensitive). All variations will be correctly routed to this endpoint.
+
 **Request Body**:
 ```json
 {

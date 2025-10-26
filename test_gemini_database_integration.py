@@ -7,11 +7,18 @@ This simulates the exact scenario described in the issue where:
 """
 import pytest
 import os
+import importlib
 from unittest.mock import AsyncMock, MagicMock, patch
 from model.aiapirequest import aiapirequest
 from model.aiapiresult import aiapiresult
 from service.ai_service import send_ai_request
 from model.provider import Provider
+
+
+def reload_config():
+    """Helper function to reload config module to pick up environment changes"""
+    import config
+    importlib.reload(config)
 
 
 @pytest.mark.asyncio
@@ -24,12 +31,11 @@ async def test_gemini_with_database_api_key_no_env():
         del os.environ["GEMINI_API_KEY"]
     
     # Reload config to ensure it picks up the cleared environment
-    import config
-    import importlib
-    importlib.reload(config)
+    reload_config()
     
     try:
         # Verify environment variable is not set
+        import config
         assert os.environ.get("GEMINI_API_KEY", "") == ""
         assert config.GEMINI_API_KEY == ""
         
@@ -95,7 +101,7 @@ async def test_gemini_with_database_api_key_no_env():
             os.environ["GEMINI_API_KEY"] = original_key
         
         # Reload config to restore original state
-        importlib.reload(config)
+        reload_config()
 
 
 @pytest.mark.asyncio
@@ -108,9 +114,7 @@ async def test_gemini_error_message_when_no_api_key_anywhere():
         del os.environ["GEMINI_API_KEY"]
     
     # Reload config
-    import config
-    import importlib
-    importlib.reload(config)
+    reload_config()
     
     try:
         # Create a mock database session that returns no provider
@@ -142,7 +146,7 @@ async def test_gemini_error_message_when_no_api_key_anywhere():
         if original_key is not None:
             os.environ["GEMINI_API_KEY"] = original_key
         
-        importlib.reload(config)
+        reload_config()
 
 
 @pytest.mark.asyncio
@@ -154,9 +158,7 @@ async def test_provider_precedence_order():
     os.environ["GEMINI_API_KEY"] = "env-var-key"
     
     # Reload config to pick up env var
-    import config
-    import importlib
-    importlib.reload(config)
+    reload_config()
     
     try:
         # Create request
@@ -201,7 +203,7 @@ async def test_provider_precedence_order():
         elif "GEMINI_API_KEY" in os.environ:
             del os.environ["GEMINI_API_KEY"]
         
-        importlib.reload(config)
+        reload_config()
 
 
 if __name__ == "__main__":

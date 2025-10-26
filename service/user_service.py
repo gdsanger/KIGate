@@ -29,6 +29,7 @@ class UserService:
             client_id=client_id,
             name=user_data.name,
             email=user_data.email,
+            role=user_data.role,
             is_active=user_data.is_active
         )
         
@@ -99,6 +100,11 @@ class UserService:
         users = result.scalars().all()
         
         return [UserWithSecret.model_validate(user) for user in users]
+    
+    @staticmethod
+    async def get_all_users(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[UserResponse]:
+        """Get all users - alias for get_users"""
+        return await UserService.get_users(db, skip, limit)
     
     @staticmethod
     async def update_user(db: AsyncSession, client_id: str, user_data: UserUpdate) -> Optional[UserResponse]:

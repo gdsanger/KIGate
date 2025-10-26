@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_async_session
 from service.user_service import UserService
+from service.rate_limit_service import RateLimitService
 from model.user import User
 
 security = HTTPBearer()
@@ -20,6 +21,7 @@ async def authenticate_user_by_token(
     """
     Authenticate user by Bearer token (client_secret)
     Expected format: Bearer {client_id}:{client_secret}
+    Also performs initial rate limit check (RPM only, TPM checked later with actual token usage)
     """
     token = credentials.credentials
     
@@ -42,9 +44,21 @@ async def authenticate_user_by_token(
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
+        # Check rate limits (RPM check)
+        is_allowed, error_message = await RateLimitService.check_rate_limits(db, user)
+        if not is_allowed:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=error_message,
+                headers={"Retry-After": "60"}
+            )
+        
         await db.commit()  # Commit the last_login update
         return user
         
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

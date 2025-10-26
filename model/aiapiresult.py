@@ -7,3 +7,4 @@ class aiapiresult(BaseModel):
     content: str
     success: bool
     error_message: Optional[str] = None
+    tokens_used: int = 0  # Token usage for rate limiting

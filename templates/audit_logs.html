@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">AI Audit Logs</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <span class="text-muted">{{ total_count }} Einträge gesamt</span>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Zeitstempel</th>
+                <th>Client IP</th>
+                <th>API Endpoint</th>
+                <th>Client Secret</th>
+                <th>Payload Vorschau</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>
+                    {% if log.client_ip %}
+                        <code>{{ log.client_ip }}</code>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td><code>{{ log.api_endpoint }}</code></td>
+                <td>
+                    {% if log.client_secret %}
+                        <code class="text-muted">{{ log.client_secret }}</code>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if log.payload_preview %}
+                        <small class="text-truncate d-inline-block" style="max-width: 300px;" title="{{ log.payload_preview }}">
+                            {{ log.payload_preview }}
+                        </small>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if log.status_code %}
+                        {% if log.status_code < 300 %}
+                            <span class="badge bg-success">{{ log.status_code }}</span>
+                        {% elif log.status_code < 400 %}
+                            <span class="badge bg-info">{{ log.status_code }}</span>
+                        {% elif log.status_code < 500 %}
+                            <span class="badge bg-warning">{{ log.status_code }}</span>
+                        {% else %}
+                            <span class="badge bg-danger">{{ log.status_code }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">Keine Audit Logs vorhanden</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<nav aria-label="Audit Logs Pagination">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not has_prev %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ prev_page }}" {% if not has_prev %}tabindex="-1"{% endif %}>Zurück</a>
+        </li>
+        
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == current_page %}
+                <li class="page-item active">
+                    <span class="page-link">{{ p }}</span>
+                </li>
+            {% elif p == 1 or p == total_pages or (p >= current_page - 2 and p <= current_page + 2) %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+                </li>
+            {% elif p == current_page - 3 or p == current_page + 3 %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        <li class="page-item {% if not has_next %}disabled{% endif %}">
+            <a class="page-link" href="?page={{ next_page }}" {% if not has_next %}tabindex="-1"{% endif %}>Weiter</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

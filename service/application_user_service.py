@@ -42,6 +42,7 @@ class ApplicationUserService:
                 id=user_id,
                 name=user_data.name,
                 email=user_data.email,
+                role=user_data.role,
                 is_active=user_data.is_active
             )
             

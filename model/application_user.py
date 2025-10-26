@@ -25,6 +25,7 @@ class ApplicationUser(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(200), nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String(256), nullable=False)  # bcrypt hash
+    role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
     last_logon: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
@@ -71,6 +72,7 @@ class ApplicationUserCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr = Field(..., max_length=200)
     password: Optional[str] = Field(None, min_length=1)  # Optional - will generate if not provided
+    role: str = Field(default="user", pattern="^(admin|user)$")
     is_active: bool = True
 
     model_config = ConfigDict(from_attributes=True)
@@ -80,6 +82,7 @@ class ApplicationUserUpdate(BaseModel):
     """Model for updating an ApplicationUser"""
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     email: Optional[EmailStr] = Field(None, max_length=200)
+    role: Optional[str] = Field(None, pattern="^(admin|user)$")
     is_active: Optional[bool] = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -90,6 +93,7 @@ class ApplicationUserResponse(BaseModel):
     id: str
     name: str
     email: str
+    role: str
     last_logon: Optional[datetime]
     created_at: datetime
     is_active: bool

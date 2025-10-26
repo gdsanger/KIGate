@@ -3,7 +3,7 @@ Tests for AI service provider name normalization
 """
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, patch, MagicMock, ANY
 from model.aiapirequest import aiapirequest
 from model.aiapiresult import aiapiresult
 from service.ai_service import send_ai_request
@@ -33,8 +33,8 @@ async def test_google_gemini_normalization():
         # Test with "Google Gemini" (with capital letters and space)
         result = await send_ai_request(request, "Google Gemini")
         
-        # Verify gemini controller was called
-        mock_gemini.assert_called_once_with(request)
+        # Verify gemini controller was called (with api_key parameter)
+        mock_gemini.assert_called_once_with(request, api_key=ANY)
         assert result.success is True
         assert result.content == "test response"
 
@@ -72,8 +72,8 @@ async def test_gemini_variations():
             
             result = await send_ai_request(request, provider_name)
             
-            # Verify gemini controller was called for each variation
-            mock_gemini.assert_called_once_with(request)
+            # Verify gemini controller was called for each variation (with api_key parameter)
+            mock_gemini.assert_called_once_with(request, api_key=ANY)
             assert result.success is True, f"Failed for provider: {provider_name}"
 
 
@@ -102,7 +102,7 @@ async def test_openai_normalization():
             
             result = await send_ai_request(request, provider_name)
             
-            mock_openai.assert_called_once_with(request)
+            mock_openai.assert_called_once_with(request, api_key=ANY, org_id=ANY)
             assert result.success is True, f"Failed for provider: {provider_name}"
 
 
@@ -138,7 +138,7 @@ async def test_claude_normalization():
             
             result = await send_ai_request(request, provider_name)
             
-            mock_claude.assert_called_once_with(request)
+            mock_claude.assert_called_once_with(request, api_key=ANY)
             assert result.success is True, f"Failed for provider: {provider_name}"
 
 

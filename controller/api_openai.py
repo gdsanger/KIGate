@@ -28,10 +28,11 @@ class OpenAIController:
         Args:
             strict_mode: If True, raises ValueError when API key is missing.
                         If False, allows initialization but requests will fail gracefully.
-            api_key: Override API key (defaults to config value)
-            org_id: Override organization ID (defaults to config value)
+            api_key: Optional API key to use (if not provided, falls back to environment variable)
+            org_id: Optional organization ID to use (if not provided, falls back to environment variable)
         """
         import os
+        # Use provided API key or fallback to environment variable
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY", "") or OPENAI_API_KEY
         self.org_id = org_id or os.environ.get("OPENAI_ORG_ID", "") or OPENAI_ORG_ID
         
@@ -210,24 +211,39 @@ class OpenAIController:
 _openai_controller: Optional[OpenAIController] = None
 
 
-def get_openai_controller() -> OpenAIController:
-    """Get or create the OpenAI controller singleton instance"""
+def get_openai_controller(api_key: Optional[str] = None, org_id: Optional[str] = None) -> OpenAIController:
+    """
+    Get or create the OpenAI controller singleton instance
+    
+    Args:
+        api_key: Optional API key to use for initialization
+        org_id: Optional organization ID to use for initialization
+        
+    Note: If api_key or org_id is provided, a new controller instance will be created
+    """
     global _openai_controller
+    
+    # If api_key or org_id is provided, always create a new instance
+    if api_key or org_id:
+        return OpenAIController(strict_mode=False, api_key=api_key, org_id=org_id)
+    
+    # Otherwise use singleton with non-strict mode for production
     if _openai_controller is None:
-        # Use non-strict mode for production to handle missing API keys gracefully
         _openai_controller = OpenAIController(strict_mode=False)
     return _openai_controller
 
 
-async def process_openai_request(request: aiapirequest) -> aiapiresult:
+async def process_openai_request(request: aiapirequest, api_key: Optional[str] = None, org_id: Optional[str] = None) -> aiapiresult:
     """
     Convenience function to process OpenAI requests
     
     Args:
         request: The aiapirequest object
+        api_key: Optional API key to use (if not provided, uses environment variable)
+        org_id: Optional organization ID to use (if not provided, uses environment variable)
         
     Returns:
         aiapiresult: The processed result
     """
-    controller = get_openai_controller()
+    controller = get_openai_controller(api_key, org_id)
     return await controller.process_request(request)

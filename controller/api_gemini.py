@@ -20,18 +20,22 @@ logger = logging.getLogger(__name__)
 class GeminiController:
     """Controller for Google Gemini API interactions"""
     
-    def __init__(self, strict_mode: bool = True):
+    def __init__(self, strict_mode: bool = True, api_key: Optional[str] = None):
         """
         Initialize Gemini controller with API configuration
         
         Args:
             strict_mode: If True, raises error when API key is missing
+            api_key: Optional API key to use (if not provided, falls back to environment variable)
         """
         self.client = None
         
-        if GEMINI_API_KEY:
+        # Use provided API key or fallback to environment variable
+        effective_api_key = api_key or GEMINI_API_KEY
+        
+        if effective_api_key:
             try:
-                genai.configure(api_key=GEMINI_API_KEY)
+                genai.configure(api_key=effective_api_key)
                 # Verify the configuration works
                 self.client = genai.GenerativeModel('gemini-pro')
                 logger.info("Gemini API client initialized successfully")
@@ -40,7 +44,7 @@ class GeminiController:
                 if strict_mode:
                     raise ValueError(f"Failed to initialize Gemini API client: {str(e)}")
         else:
-            logger.warning("GEMINI_API_KEY not found in environment variables")
+            logger.warning("GEMINI_API_KEY not found in environment variables or parameters")
             if strict_mode:
                 raise ValueError("Gemini API key is not configured")
     
@@ -165,23 +169,37 @@ class GeminiController:
 _gemini_controller: Optional[GeminiController] = None
 
 
-def get_gemini_controller() -> GeminiController:
-    """Get or create the Gemini controller singleton instance"""
+def get_gemini_controller(api_key: Optional[str] = None) -> GeminiController:
+    """
+    Get or create the Gemini controller singleton instance
+    
+    Args:
+        api_key: Optional API key to use for initialization
+        
+    Note: If api_key is provided, a new controller instance will be created
+    """
     global _gemini_controller
+    
+    # If api_key is provided, always create a new instance
+    if api_key:
+        return GeminiController(strict_mode=False, api_key=api_key)
+    
+    # Otherwise use singleton
     if _gemini_controller is None:
-        _gemini_controller = GeminiController()
+        _gemini_controller = GeminiController(strict_mode=False)
     return _gemini_controller
 
 
-async def process_gemini_request(request: aiapirequest) -> aiapiresult:
+async def process_gemini_request(request: aiapirequest, api_key: Optional[str] = None) -> aiapiresult:
     """
-    Process a Gemini API request using the singleton controller
+    Process a Gemini API request using the controller
     
     Args:
         request: The aiapirequest object
+        api_key: Optional API key to use (if not provided, uses environment variable)
         
     Returns:
         aiapiresult: The response from Gemini API
     """
-    controller = get_gemini_controller()
+    controller = get_gemini_controller(api_key)
     return await controller.process_request(request)

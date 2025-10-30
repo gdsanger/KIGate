@@ -323,6 +323,19 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
             
             if cached_result:
                 result, metadata = cached_result
+                
+                # Extract required fields from cache metadata
+                job_id = metadata.get("job_id")
+                status = metadata.get("status")
+                
+                # Log warning if fallback values would be needed
+                if not job_id:
+                    logger.warning(f"Cache entry missing job_id, using fallback value")
+                    job_id = "cached"
+                if not status:
+                    logger.warning(f"Cache entry missing status, using fallback value")
+                    status = "completed"
+                
                 cache_metadata = CacheMetadata(
                     status="hit",
                     cached_at=metadata.get("cached_at"),
@@ -330,11 +343,11 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
                 )
                 
                 return AgentExecutionResponse(
-                    job_id=metadata.get("job_id", "cached"),
+                    job_id=job_id,
                     agent=agent_request.agent_name,
                     provider=agent.provider,
                     model=agent.model,
-                    status=metadata.get("status", "completed"),
+                    status=status,
                     result=result,
                     cache=cache_metadata
                 )

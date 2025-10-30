@@ -7,6 +7,7 @@ Implements cache-aside strategy with:
 - Configurable TTL
 - Cache hit/miss tracking
 """
+import asyncio
 import hashlib
 import json
 import time
@@ -280,31 +281,6 @@ class CacheService:
             return False
     
     @classmethod
-    async def wait_for_lock_release(cls, cache_key: str, max_wait: int = 60, check_interval: float = 0.5):
-        """
-        Wait for a lock to be released, checking periodically
-        
-        Args:
-            cache_key: The cache key being locked
-            max_wait: Maximum time to wait in seconds
-            check_interval: How often to check in seconds
-        """
-        if not cls.is_available():
-            return
-        
-        lock_key = cls._get_lock_key(cache_key)
-        start_time = time.time()
-        
-        while time.time() - start_time < max_wait:
-            if not cls._redis_client.exists(lock_key):
-                logger.debug(f"Lock released for key: {cache_key[:80]}...")
-                return
-            
-            await asyncio.sleep(check_interval)
-        
-        logger.warning(f"Timeout waiting for lock release: {cache_key[:80]}...")
-    
-    @classmethod
     def clear_cache(cls, pattern: Optional[str] = None) -> int:
         """
         Clear cache entries matching pattern
@@ -337,6 +313,3 @@ class CacheService:
             logger.error(f"Error clearing cache: {str(e)}")
             return 0
 
-
-# Import asyncio for wait_for_lock_release
-import asyncio

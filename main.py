@@ -48,6 +48,16 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting KIGate API...")
+    
+    # Check dependencies before initializing
+    from utils.dependency_checker import DependencyChecker
+    all_core_installed, missing_providers = DependencyChecker.verify_all_dependencies()
+    
+    if not all_core_installed:
+        logger.error("Cannot start application - core dependencies are missing!")
+        logger.error("Please run: pip install -r requirements.txt")
+        raise RuntimeError("Core dependencies missing. Please run: pip install -r requirements.txt")
+    
     await init_db()
     
     # Initialize default settings and load Sentry configuration

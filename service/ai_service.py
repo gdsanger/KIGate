@@ -108,7 +108,9 @@ async def send_ai_request(request: aiapirequest, provider: str, db: Optional[Asy
             )
             
     except ImportError as e:
-        error_msg = f"Provider {provider} controller not available: {str(e)}"
+        from utils.dependency_checker import DependencyChecker
+        help_msg = DependencyChecker.get_installation_help_message(canonical_provider)
+        error_msg = f"Provider {provider} controller not available: {str(e)}. {help_msg}"
         logger.error(f"Import error for job_id {request.job_id}: {error_msg}")
         
         return aiapiresult(

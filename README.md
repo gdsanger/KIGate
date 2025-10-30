@@ -19,6 +19,8 @@ Centralized agent-driven API Gateway for AI with integrated user management syst
 pip install -r requirements.txt
 ```
 
+**Important:** All dependencies in `requirements.txt` must be installed before starting the application. This includes packages for all AI providers (OpenAI, Claude, Gemini, Ollama) even if you don't plan to use all of them immediately.
+
 2. Start the application:
 ```bash
 uvicorn main:app --reload

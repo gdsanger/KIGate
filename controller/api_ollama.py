@@ -57,16 +57,20 @@ class OllamaController:
         Returns:
             aiapiresult: The result containing response content, success status, and any error messages
         """
-        logger.info(f"Processing Ollama request for job_id: {request.job_id}, user_id: {request.user_id}")
+        # Capture job_id and user_id at entry to prevent any mutation issues during async processing
+        job_id = request.job_id
+        user_id = request.user_id
+        
+        logger.info(f"Processing Ollama request for job_id: {job_id}, user_id: {user_id}")
         
         # Check if Ollama client is initialized
         if not self.client:
             error_msg = "Ollama API URL is not configured"
-            logger.error(f"Configuration error for job_id {request.job_id}: {error_msg}")
+            logger.error(f"Configuration error for job_id {job_id}: {error_msg}")
             
             return aiapiresult(
-                job_id=request.job_id,
-                user_id=request.user_id,
+                job_id=job_id,
+                user_id=user_id,
                 content="",
                 success=False,
                 error_message=error_msg
@@ -124,22 +128,22 @@ class OllamaController:
                 if content is None:
                     content = ""
                 
-                logger.info(f"Successfully received response for job_id: {request.job_id}")
+                logger.info(f"Successfully received response for job_id: {job_id}")
                 
                 return aiapiresult(
-                    job_id=request.job_id,
-                    user_id=request.user_id,
+                    job_id=job_id,
+                    user_id=user_id,
                     content=content,
                     success=True,
                     error_message=None
                 )
             else:
                 error_msg = "No response message returned from Ollama API"
-                logger.error(f"Error for job_id {request.job_id}: {error_msg}")
+                logger.error(f"Error for job_id {job_id}: {error_msg}")
                 
                 return aiapiresult(
-                    job_id=request.job_id,
-                    user_id=request.user_id,
+                    job_id=job_id,
+                    user_id=user_id,
                     content="",
                     success=False,
                     error_message=error_msg
@@ -147,11 +151,11 @@ class OllamaController:
                 
         except Exception as e:
             error_msg = f"Unexpected error: {str(e)}"
-            logger.error(f"Unexpected error for job_id {request.job_id}: {error_msg}")
+            logger.error(f"Unexpected error for job_id {job_id}: {error_msg}")
             
             return aiapiresult(
-                job_id=request.job_id,
-                user_id=request.user_id,
+                job_id=job_id,
+                user_id=user_id,
                 content="",
                 success=False,
                 error_message=error_msg

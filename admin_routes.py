@@ -8,7 +8,7 @@ from fastapi import APIRouter, Request, Depends, HTTPException, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, distinct
 
 from database import get_async_session
 from model.user import User, UserCreate, UserUpdate
@@ -687,21 +687,40 @@ async def test_agent(
 async def admin_jobs(
     request: Request,
     page: int = 1,
+    status: Optional[str] = None,
+    provider: Optional[str] = None,
+    name: Optional[str] = None,
     db: AsyncSession = Depends(get_async_session),
     admin_user: str = Depends(get_admin_user)
 ):
-    """Job management page with pagination"""
+    """Job management page with pagination and filters"""
     try:
         # Ensure page is at least 1
         page = max(1, page)
         
-        # Get jobs with pagination
-        jobs, total_count = await JobService.get_jobs_paginated(db, page=page, per_page=25)
+        # Get jobs with pagination and filters
+        jobs, total_count = await JobService.get_jobs_paginated(
+            db, 
+            page=page, 
+            per_page=25,
+            status_filter=status,
+            provider_filter=provider,
+            name_filter=name
+        )
         
         # Calculate pagination info
         total_pages = (total_count + 24) // 25  # Ceiling division
         has_prev = page > 1
         has_next = page < total_pages
+        
+        # Get unique values for filters
+        # Get distinct statuses
+        status_result = await db.execute(select(distinct(Job.status)).order_by(Job.status))
+        statuses = [s for s in status_result.scalars().all() if s]
+        
+        # Get distinct providers
+        provider_result = await db.execute(select(distinct(Job.provider)).order_by(Job.provider))
+        providers = [p for p in provider_result.scalars().all() if p]
         
         return templates.TemplateResponse("jobs.html", {
             "request": request,
@@ -713,11 +732,41 @@ async def admin_jobs(
             "has_next": has_next,
             "prev_page": page - 1 if has_prev else None,
             "next_page": page + 1 if has_next else None,
+            "statuses": statuses,
+            "providers": providers,
+            "current_status": status,
+            "current_provider": provider,
+            "current_name": name,
         })
         
     except Exception as e:
         logger.error(f"Error loading jobs page: {str(e)}")
         raise HTTPException(status_code=500, detail="Fehler beim Laden der Jobs")
+
+
+@admin_router.post("/jobs/cleanup")
+async def cleanup_old_jobs(
+    request: Request,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Delete jobs older than 7 days"""
+    try:
+        deleted_count = await JobService.delete_old_jobs(db, days=7)
+        await db.commit()
+        
+        return JSONResponse({
+            "success": True,
+            "deleted_count": deleted_count,
+            "message": f"{deleted_count} Jobs wurden gelöscht"
+        })
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error cleaning up old jobs: {str(e)}")
+        return JSONResponse({
+            "success": False,
+            "error": "Fehler beim Bereinigen der Jobs"
+        }, status_code=500)
 
 
 # ApplicationUser Management Routes

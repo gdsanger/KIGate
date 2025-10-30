@@ -59,16 +59,20 @@ class GeminiController:
         Returns:
             aiapiresult: The result containing response content, success status, and any error messages
         """
-        logger.info(f"Processing Gemini request for job_id: {request.job_id}, user_id: {request.user_id}")
+        # Capture job_id and user_id at entry to prevent any mutation issues during async processing
+        job_id = request.job_id
+        user_id = request.user_id
+        
+        logger.info(f"Processing Gemini request for job_id: {job_id}, user_id: {user_id}")
         
         # Check if Gemini client is initialized
         if not self.client:
             error_msg = "Gemini API key is not configured"
-            logger.error(f"Configuration error for job_id {request.job_id}: {error_msg}")
+            logger.error(f"Configuration error for job_id {job_id}: {error_msg}")
             
             return aiapiresult(
-                job_id=request.job_id,
-                user_id=request.user_id,
+                job_id=job_id,
+                user_id=user_id,
                 content="",
                 success=False,
                 error_message=error_msg
@@ -102,13 +106,13 @@ class GeminiController:
                 tokens_used = 0
                 if hasattr(response, 'usage_metadata') and response.usage_metadata:
                     tokens_used = response.usage_metadata.total_token_count
-                    logger.debug(f"Token usage for job_id {request.job_id}: {tokens_used}")
+                    logger.debug(f"Token usage for job_id {job_id}: {tokens_used}")
                 
-                logger.info(f"Successfully received response for job_id: {request.job_id}")
+                logger.info(f"Successfully received response for job_id: {job_id}")
                 
                 result = aiapiresult(
-                    job_id=request.job_id,
-                    user_id=request.user_id,
+                    job_id=job_id,
+                    user_id=user_id,
                     content=content,
                     success=True,
                     error_message=None
@@ -117,11 +121,11 @@ class GeminiController:
                 return result
             else:
                 error_msg = "No response text returned from Gemini API"
-                logger.error(f"Error for job_id {request.job_id}: {error_msg}")
+                logger.error(f"Error for job_id {job_id}: {error_msg}")
                 
                 return aiapiresult(
-                    job_id=request.job_id,
-                    user_id=request.user_id,
+                    job_id=job_id,
+                    user_id=user_id,
                     content="",
                     success=False,
                     error_message=error_msg
@@ -130,11 +134,11 @@ class GeminiController:
         except ValueError as e:
             # Validation errors
             error_msg = f"Validation error: {str(e)}"
-            logger.error(f"Validation error for job_id {request.job_id}: {error_msg}")
+            logger.error(f"Validation error for job_id {job_id}: {error_msg}")
             
             return aiapiresult(
-                job_id=request.job_id,
-                user_id=request.user_id,
+                job_id=job_id,
+                user_id=user_id,
                 content="",
                 success=False,
                 error_message=error_msg
@@ -146,20 +150,20 @@ class GeminiController:
             
             if "quota" in error_str or "limit" in error_str:
                 error_msg = f"Rate limit or quota exceeded: {str(e)}"
-                logger.error(f"Rate limit error for job_id {request.job_id}: {error_msg}")
+                logger.error(f"Rate limit error for job_id {job_id}: {error_msg}")
             elif "permission" in error_str or "unauthorized" in error_str or "forbidden" in error_str:
                 error_msg = f"Authentication error: {str(e)}"
-                logger.error(f"Authentication error for job_id {request.job_id}: {error_msg}")
+                logger.error(f"Authentication error for job_id {job_id}: {error_msg}")
             elif "api" in error_str:
                 error_msg = f"Gemini API error: {str(e)}"
-                logger.error(f"API error for job_id {request.job_id}: {error_msg}")
+                logger.error(f"API error for job_id {job_id}: {error_msg}")
             else:
                 error_msg = f"Unexpected error: {str(e)}"
-                logger.error(f"Unexpected error for job_id {request.job_id}: {error_msg}")
+                logger.error(f"Unexpected error for job_id {job_id}: {error_msg}")
             
             return aiapiresult(
-                job_id=request.job_id,
-                user_id=request.user_id,
+                job_id=job_id,
+                user_id=user_id,
                 content="",
                 success=False,
                 error_message=error_msg

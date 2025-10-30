@@ -15,6 +15,7 @@ msal
 openai
 google-generativeai
 anthropic
+ollama
 pypdf
 python-docx
 sentry-sdk[fastapi]

@@ -30,6 +30,9 @@ async def send_ai_request(request: aiapirequest, provider: str, db: Optional[Asy
         "openai": "openai",
         "claude": "claude",
         "anthropic claude": "claude",
+        "ollama": "ollama",
+        "ollama (local)": "ollama",
+        "ollama (loakl)": "ollama",  # Handle typo
     }
     
     # Normalize: lowercase and strip whitespace
@@ -47,6 +50,7 @@ async def send_ai_request(request: aiapirequest, provider: str, db: Optional[Asy
     # Fetch provider configuration from database if db session is provided
     api_key = None
     org_id = None
+    api_url = None
     
     if db:
         try:
@@ -66,6 +70,7 @@ async def send_ai_request(request: aiapirequest, provider: str, db: Optional[Asy
             if provider_entity:
                 api_key = provider_entity.api_key
                 org_id = provider_entity.organization_id
+                api_url = provider_entity.api_url
                 logger.info(f"Using provider configuration from database for '{canonical_provider}' (ID: {provider_entity.id})")
             else:
                 logger.warning(f"No active provider found in database for type '{canonical_provider}', falling back to environment variables")
@@ -84,6 +89,10 @@ async def send_ai_request(request: aiapirequest, provider: str, db: Optional[Asy
         elif canonical_provider == "gemini":
             from controller.api_gemini import process_gemini_request
             return await process_gemini_request(request, api_key=api_key)
+        
+        elif canonical_provider == "ollama":
+            from controller.api_ollama import process_ollama_request
+            return await process_ollama_request(request, api_url=api_url)
         
         else:
             # Unsupported provider

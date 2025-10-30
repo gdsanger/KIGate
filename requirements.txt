@@ -20,4 +20,5 @@ pypdf
 python-docx
 sentry-sdk[fastapi]
 tiktoken
+redis
 

@@ -596,6 +596,7 @@ async def ai_review_agent(
 async def test_agent(
     name: str,
     request: Request,
+    db: AsyncSession = Depends(get_async_session),
     admin_user: str = Depends(get_admin_user)
 ):
     """Test agent with real AI API call"""
@@ -651,7 +652,7 @@ async def test_agent(
         start_time = time.time()
         
         # Send request to AI provider
-        ai_result = await send_ai_request(ai_request, agent.provider)
+        ai_result = await send_ai_request(ai_request, agent.provider, db)
         
         # Calculate duration
         duration_ms = int((time.time() - start_time) * 1000)

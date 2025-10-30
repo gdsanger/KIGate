@@ -10,6 +10,7 @@ import uuid
 import yaml
 import time
 import logging
+from datetime import datetime, timezone
 
 from database import init_db, close_db, get_async_session
 from admin_routes import admin_router
@@ -32,6 +33,7 @@ from service.pdf_service import PDFService
 from service.docx_service import DocxService
 from service.settings_service import SettingsService
 from service.ai_audit_log_service import AIAuditLogService
+from service.cache_service import CacheService
 from controller.api_openai import process_openai_request
 from controller.api_gemini import process_gemini_request
 from controller.api_claude import process_claude_request
@@ -39,6 +41,7 @@ from logging_config import LoggingConfig
 from utils.request_utils import get_client_ip, extract_auth_token
 from utils.token_counter import count_tokens
 from pydantic import ValidationError
+import config
 
 # Initialize logging system
 LoggingConfig.setup_logging()
@@ -59,6 +62,9 @@ async def lifespan(app: FastAPI):
         raise RuntimeError("Core dependencies missing. Please run: pip install -r requirements.txt")
     
     await init_db()
+    
+    # Initialize Redis cache
+    CacheService.initialize()
     
     # Initialize default settings and load Sentry configuration
     async for db in get_async_session():
@@ -286,14 +292,17 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
     Execute an agent with the specified configuration
     
     This endpoint:
-    1. Loads the agent configuration from YAML file
-    2. Creates a job in the database
-    3. Combines agent role/task with user message
-    4. Routes request to appropriate AI provider
-    5. Returns structured response with job details and result
+    1. Checks cache if enabled (cache-aside strategy)
+    2. Loads the agent configuration from YAML file
+    3. Creates a job in the database
+    4. Combines agent role/task with user message
+    5. Routes request to appropriate AI provider
+    6. Caches the result for future requests
+    7. Returns structured response with job details, result, and cache metadata
     Rate limited by RPM and TPM.
     """
     from service.rate_limit_service import RateLimitService
+    from model.agent_execution import CacheMetadata
     
     try:
         # Extract client IP
@@ -309,6 +318,55 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
         
         # Note: User-provided provider and model are accepted but ignored.
         # Always use the provider and model from the agent configuration.
+        
+        # Check cache if enabled and not forcing refresh
+        cache_metadata = None
+        if agent_request.use_cache and not agent_request.force_refresh:
+            cached_result = await CacheService.get_cached_result(
+                agent_name=agent_request.agent_name,
+                provider=agent.provider,
+                model=agent.model,
+                user_id=agent_request.user_id,
+                message=agent_request.message,
+                parameters=agent_request.parameters
+            )
+            
+            if cached_result:
+                result, metadata = cached_result
+                
+                # Extract required fields from cache metadata
+                job_id = metadata.get("job_id")
+                status = metadata.get("status")
+                
+                # Log warning if fallback values would be needed
+                if not job_id:
+                    logger.warning(f"Cache entry missing job_id, using fallback value")
+                    job_id = "cached"
+                if not status:
+                    logger.warning(f"Cache entry missing status, using fallback value")
+                    status = "completed"
+                
+                cache_metadata = CacheMetadata(
+                    status="hit",
+                    cached_at=metadata.get("cached_at"),
+                    ttl=metadata.get("ttl")
+                )
+                
+                return AgentExecutionResponse(
+                    job_id=job_id,
+                    agent=agent_request.agent_name,
+                    provider=agent.provider,
+                    model=agent.model,
+                    status=status,
+                    result=result,
+                    cache=cache_metadata
+                )
+        
+        # Determine cache status for response
+        if not agent_request.use_cache:
+            cache_status = "bypassed"
+        else:
+            cache_status = "miss"
         
         # Create job in database
         async for db in get_async_session():
@@ -377,13 +435,44 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
                 
                 await db.commit()
                 
+                # Cache the result if caching is enabled
+                if agent_request.use_cache:
+                    await CacheService.set_cached_result(
+                        agent_name=agent_request.agent_name,
+                        provider=agent.provider,
+                        model=agent.model,
+                        user_id=agent_request.user_id,
+                        message=agent_request.message,
+                        result=result,
+                        status=status,
+                        job_id=job.id,
+                        parameters=agent_request.parameters,
+                        ttl=agent_request.cache_ttl
+                    )
+                    
+                    # Create cache metadata for response
+                    cache_metadata = CacheMetadata(
+                        status=cache_status,
+                        cached_at=datetime.now(timezone.utc).isoformat(),
+                        ttl=agent_request.cache_ttl or (
+                            config.CACHE_ERROR_TTL if status == "failed" else config.CACHE_DEFAULT_TTL
+                        )
+                    )
+                else:
+                    cache_metadata = CacheMetadata(
+                        status=cache_status,
+                        cached_at=None,
+                        ttl=None
+                    )
+                
                 return AgentExecutionResponse(
                     job_id=job.id,
                     agent=agent_request.agent_name,
                     provider=agent.provider,
                     model=agent.model,
                     status=status,
-                    result=result
+                    result=result,
+                    cache=cache_metadata
                 )
                 
             except Exception as ai_error:

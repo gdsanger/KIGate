@@ -297,19 +297,8 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
                 detail=f"Agent '{agent_request.agent_name}' not found"
             )
         
-        # Validate provider matches agent configuration
-        if agent_request.provider.lower() != agent.provider.lower():
-            raise HTTPException(
-                status_code=400,
-                detail=f"Provider '{agent_request.provider}' does not match agent configuration '{agent.provider}'"
-            )
-        
-        # Validate model matches agent configuration  
-        if agent_request.model.lower() != agent.model.lower():
-            raise HTTPException(
-                status_code=400,
-                detail=f"Model '{agent_request.model}' does not match agent configuration '{agent.model}'"
-            )
+        # Note: User-provided provider and model are accepted but ignored.
+        # Always use the provider and model from the agent configuration.
         
         # Create job in database
         async for db in get_async_session():
@@ -324,14 +313,14 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
             
             combined_message = f"{agent.role}\n\n{processed_task}\n\nUser message: {agent_request.message}"
             
-            # Count tokens in the combined message
-            token_count = count_tokens(combined_message, agent_request.model)
+            # Count tokens in the combined message using agent's model
+            token_count = count_tokens(combined_message, agent.model)
             
             job_data = JobCreate(
                 name=f"{agent_request.agent_name}-job",
                 user_id=agent_request.user_id,
-                provider=agent_request.provider,
-                model=agent_request.model,
+                provider=agent.provider,
+                model=agent.model,
                 status="created",
                 client_ip=client_ip,
                 token_count=token_count
@@ -345,7 +334,7 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
             ai_request = aiapirequest(
                 job_id=job.id,
                 user_id=agent_request.user_id,
-                model=agent_request.model,
+                model=agent.model,
                 message=combined_message
             )
             
@@ -354,8 +343,8 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
             await db.commit()
             
             try:
-                # Send request to AI provider
-                ai_result = await send_ai_request(ai_request, agent_request.provider, db)
+                # Send request to AI provider using agent's provider
+                ai_result = await send_ai_request(ai_request, agent.provider, db)
                 
                 # Record the request and token usage for rate limiting
                 await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
@@ -381,8 +370,8 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
                 return AgentExecutionResponse(
                     job_id=job.id,
                     agent=agent_request.agent_name,
-                    provider=agent_request.provider,
-                    model=agent_request.model,
+                    provider=agent.provider,
+                    model=agent.model,
                     status=status,
                     result=result
                 )
@@ -606,19 +595,11 @@ async def execute_agent_pdf(
                 detail=f"Agent '{agent_name}' not found"
             )
         
-        # Validate provider matches agent configuration
-        if provider.lower() != agent.provider.lower():
-            raise HTTPException(
-                status_code=400,
-                detail=f"Provider '{provider}' does not match agent configuration '{agent.provider}'"
-            )
-        
-        # Validate model matches agent configuration  
-        if model.lower() != agent.model.lower():
-            raise HTTPException(
-                status_code=400,
-                detail=f"Model '{model}' does not match agent configuration '{agent.model}'"
-            )
+        # Note: User-provided provider and model are accepted but ignored.
+        # Always use the provider and model from the agent configuration.
+        # Override with agent's configuration
+        provider = agent.provider
+        model = agent.model
         
         # Extract text from PDF
         pdf_text = await PDFService.extract_text_from_pdf(pdf_file)
@@ -853,19 +834,11 @@ async def execute_agent_docx(
                 detail=f"Agent '{agent_name}' not found"
             )
         
-        # Validate provider matches agent configuration
-        if provider.lower() != agent.provider.lower():
-            raise HTTPException(
-                status_code=400,
-                detail=f"Provider '{provider}' does not match agent configuration '{agent.provider}'"
-            )
-        
-        # Validate model matches agent configuration  
-        if model.lower() != agent.model.lower():
-            raise HTTPException(
-                status_code=400,
-                detail=f"Model '{model}' does not match agent configuration '{agent.model}'"
-            )
+        # Note: User-provided provider and model are accepted but ignored.
+        # Always use the provider and model from the agent configuration.
+        # Override with agent's configuration
+        provider = agent.provider
+        model = agent.model
         
         # Extract text from DOCX
         docx_text = await DocxService.extract_text_from_docx(docx_file)

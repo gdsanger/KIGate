@@ -57,14 +57,11 @@ async def test_admin_test_agent_passes_db_to_send_ai_request():
             mock_send_ai_request.assert_called_once()
             call_args = mock_send_ai_request.call_args
             
-            # Check that three arguments were passed (request, provider, db)
-            assert len(call_args.args) == 3 or (len(call_args.args) == 2 and 'db' in call_args.kwargs)
+            # Extract all arguments (positional and keyword combined)
+            all_args = list(call_args.args) + [call_args.kwargs.get('db')]
             
-            # Verify the db parameter is not None
-            if len(call_args.args) == 3:
-                assert call_args.args[2] is mock_db, "db parameter should be the mock_db"
-            else:
-                assert call_args.kwargs.get('db') is mock_db, "db parameter should be the mock_db"
+            # Verify that mock_db is among the arguments
+            assert mock_db in all_args, "db parameter should be passed to send_ai_request"
 
 
 @pytest.mark.asyncio

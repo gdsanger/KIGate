@@ -3,9 +3,59 @@
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Jobs</h1>
-    <div class="text-muted">
-        {{ total_count }} Jobs gesamt
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button type="button" class="btn btn-sm btn-danger" onclick="cleanupOldJobs()">
+            <i class="bi bi-trash"></i> Jobs bereinigen (älter als 7 Tage)
+        </button>
     </div>
+</div>
+
+<!-- Filter Form -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" action="/admin/jobs" id="filterForm">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">Alle</option>
+                        {% for status in statuses %}
+                        <option value="{{ status }}" {% if current_status == status %}selected{% endif %}>
+                            {{ status }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="provider" class="form-label">Provider</label>
+                    <select class="form-select" id="provider" name="provider">
+                        <option value="">Alle</option>
+                        {% for provider in providers %}
+                        <option value="{{ provider }}" {% if current_provider == provider %}selected{% endif %}>
+                            {{ provider }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" 
+                           placeholder="Job-Name suchen..." value="{{ current_name or '' }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Filtern</button>
+                    <a href="/admin/jobs" class="btn btn-secondary">Zurücksetzen</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="text-muted mb-2">
+    {{ total_count }} Jobs gesamt
+    {% if current_status or current_provider or current_name %}
+    <span class="badge bg-info">Filter aktiv</span>
+    {% endif %}
 </div>
 
 <div class="table-responsive">
@@ -14,7 +64,7 @@
             <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Benutzer ID</th>
+                <th>Benutzer</th>
                 <th>Provider</th>
                 <th>Modell</th>
                 <th>Status</th>
@@ -31,7 +81,9 @@
                     <code>{{ job.id[:8] }}...</code>
                 </td>
                 <td><strong>{{ job.name }}</strong></td>
-                <td>{{ job.user_id[:8] }}...</td>
+                <td>
+                    <span title="User ID: {{ job.user_id }}">{{ job.user_name }}</span>
+                </td>
                 <td>
                     <span class="badge bg-info">{{ job.provider }}</span>
                 </td>
@@ -89,7 +141,7 @@
     <ul class="pagination justify-content-center">
         {% if has_prev %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ prev_page }}">&laquo; Vorherige</a>
+            <a class="page-link" href="?page={{ prev_page }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_provider %}&provider={{ current_provider }}{% endif %}{% if current_name %}&name={{ current_name }}{% endif %}">&laquo; Vorherige</a>
         </li>
         {% else %}
         <li class="page-item disabled">
@@ -104,7 +156,7 @@
             </li>
             {% elif page_num <= 3 or page_num > total_pages - 3 or (page_num >= current_page - 1 and page_num <= current_page + 1) %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                <a class="page-link" href="?page={{ page_num }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_provider %}&provider={{ current_provider }}{% endif %}{% if current_name %}&name={{ current_name }}{% endif %}">{{ page_num }}</a>
             </li>
             {% elif page_num == 4 and current_page > 5 %}
             <li class="page-item disabled">
@@ -119,7 +171,7 @@
         
         {% if has_next %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ next_page }}">Nächste &raquo;</a>
+            <a class="page-link" href="?page={{ next_page }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_provider %}&provider={{ current_provider }}{% endif %}{% if current_name %}&name={{ current_name }}{% endif %}">Nächste &raquo;</a>
         </li>
         {% else %}
         <li class="page-item disabled">
@@ -133,5 +185,32 @@
     Seite {{ current_page }} von {{ total_pages }} ({{ jobs|length }} von {{ total_count }} Jobs)
 </div>
 {% endif %}
+
+<script>
+function cleanupOldJobs() {
+    if (!confirm('Möchten Sie alle Jobs, die älter als 7 Tage sind, wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
+        return;
+    }
+    
+    fetch('/admin/jobs/cleanup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Erfolgreich: ${data.message}`);
+            location.reload();
+        } else {
+            alert(`Fehler: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        alert('Fehler beim Bereinigen der Jobs: ' + error);
+    });
+}
+</script>
 
 {% endblock %}

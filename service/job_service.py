@@ -3,10 +3,13 @@ Job Service for managing job operations
 """
 import uuid
 import logging
-from typing import Optional, List
+from typing import Optional, List, Tuple
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
+from sqlalchemy import select, func, desc, delete, and_
+from sqlalchemy.orm import aliased
 from model.job import Job, JobCreate, JobResponse
+from model.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -121,29 +124,103 @@ class JobService:
             return False
 
     @classmethod
-    async def get_jobs_paginated(cls, db: AsyncSession, page: int = 1, per_page: int = 25) -> tuple[List[JobResponse], int]:
-        """Get jobs with pagination, ordered by created_at descending"""
+    async def get_jobs_paginated(
+        cls, 
+        db: AsyncSession, 
+        page: int = 1, 
+        per_page: int = 25,
+        status_filter: Optional[str] = None,
+        provider_filter: Optional[str] = None,
+        name_filter: Optional[str] = None
+    ) -> Tuple[List[dict], int]:
+        """Get jobs with pagination and optional filters, ordered by created_at descending
+        Returns jobs with user names instead of just user_id"""
         try:
             # Calculate offset
             offset = (page - 1) * per_page
             
+            # Use aliased User table for clarity
+            UserAlias = aliased(User)
+            
+            # Build base query with user join
+            query = select(Job, UserAlias.name.label('user_name')).outerjoin(
+                UserAlias, Job.user_id == UserAlias.client_id
+            )
+            count_query = select(func.count(Job.id))
+            
+            # Apply filters
+            filters = []
+            if status_filter:
+                filters.append(Job.status == status_filter)
+            if provider_filter:
+                filters.append(Job.provider == provider_filter)
+            if name_filter:
+                filters.append(Job.name.ilike(f"%{name_filter}%"))
+            
+            if filters:
+                filter_condition = and_(*filters)
+                query = query.where(filter_condition)
+                count_query = count_query.where(filter_condition)
+            
             # Get total count
-            count_result = await db.execute(select(func.count(Job.id)))
+            count_result = await db.execute(count_query)
             total_count = count_result.scalar()
             
             # Get jobs for current page
             result = await db.execute(
-                select(Job)
+                query
                 .order_by(desc(Job.created_at))
                 .limit(per_page)
                 .offset(offset)
             )
-            jobs = result.scalars().all()
+            rows = result.all()
             
-            job_responses = [JobResponse.model_validate(job) for job in jobs]
+            # Convert to dict with user_name
+            job_list = []
+            for job, user_name in rows:
+                job_dict = {
+                    'id': job.id,
+                    'name': job.name,
+                    'user_id': job.user_id,
+                    'user_name': user_name or 'Unbekannt',
+                    'provider': job.provider,
+                    'model': job.model,
+                    'status': job.status,
+                    'created_at': job.created_at,
+                    'duration': job.duration,
+                    'client_ip': job.client_ip,
+                    'token_count': job.token_count
+                }
+                job_list.append(job_dict)
             
-            return job_responses, total_count
+            return job_list, total_count
             
         except Exception as e:
             logger.error(f"Error getting paginated jobs: {str(e)}")
             return [], 0
+
+    @classmethod
+    async def delete_old_jobs(cls, db: AsyncSession, days: int = 7) -> int:
+        """Delete jobs older than specified days. Returns count of deleted jobs."""
+        try:
+            # Calculate cutoff date
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+            
+            # Count jobs to be deleted
+            count_result = await db.execute(
+                select(func.count(Job.id)).where(Job.created_at < cutoff_date)
+            )
+            count_to_delete = count_result.scalar()
+            
+            # Delete jobs older than cutoff date
+            await db.execute(
+                delete(Job).where(Job.created_at < cutoff_date)
+            )
+            
+            logger.info(f"Deleted {count_to_delete} jobs older than {days} days")
+            
+            return count_to_delete
+            
+        except Exception as e:
+            logger.error(f"Error deleting old jobs: {str(e)}")
+            raise

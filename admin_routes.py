@@ -765,7 +765,7 @@ async def cleanup_old_jobs(
         logger.error(f"Error cleaning up old jobs: {str(e)}")
         return JSONResponse({
             "success": False,
-            "error": f"Fehler beim Bereinigen der Jobs: {str(e)}"
+            "error": "Fehler beim Bereinigen der Jobs"
         }, status_code=500)
 
 

@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% macro pagination_url(page_num) -%}
+?page={{ page_num }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_provider %}&provider={{ current_provider }}{% endif %}{% if current_name %}&name={{ current_name }}{% endif %}
+{%- endmacro %}
+
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Jobs</h1>
@@ -141,7 +145,7 @@
     <ul class="pagination justify-content-center">
         {% if has_prev %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ prev_page }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_provider %}&provider={{ current_provider }}{% endif %}{% if current_name %}&name={{ current_name }}{% endif %}">&laquo; Vorherige</a>
+            <a class="page-link" href="{{ pagination_url(prev_page) }}">&laquo; Vorherige</a>
         </li>
         {% else %}
         <li class="page-item disabled">
@@ -156,7 +160,7 @@
             </li>
             {% elif page_num <= 3 or page_num > total_pages - 3 or (page_num >= current_page - 1 and page_num <= current_page + 1) %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_num }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_provider %}&provider={{ current_provider }}{% endif %}{% if current_name %}&name={{ current_name }}{% endif %}">{{ page_num }}</a>
+                <a class="page-link" href="{{ pagination_url(page_num) }}">{{ page_num }}</a>
             </li>
             {% elif page_num == 4 and current_page > 5 %}
             <li class="page-item disabled">
@@ -171,7 +175,7 @@
         
         {% if has_next %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ next_page }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_provider %}&provider={{ current_provider }}{% endif %}{% if current_name %}&name={{ current_name }}{% endif %}">Nächste &raquo;</a>
+            <a class="page-link" href="{{ pagination_url(next_page) }}">Nächste &raquo;</a>
         </li>
         {% else %}
         <li class="page-item disabled">
@@ -208,7 +212,7 @@ function cleanupOldJobs() {
         }
     })
     .catch(error => {
-        alert('Fehler beim Bereinigen der Jobs: ' + error);
+        alert('Fehler beim Bereinigen der Jobs: ' + (error.message || String(error)));
     });
 }
 </script>

@@ -139,8 +139,13 @@ class JobService:
             # Calculate offset
             offset = (page - 1) * per_page
             
+            # Use aliased User table for clarity
+            UserAlias = aliased(User)
+            
             # Build base query with user join
-            query = select(Job, User.name.label('user_name')).outerjoin(User, Job.user_id == User.client_id)
+            query = select(Job, UserAlias.name.label('user_name')).outerjoin(
+                UserAlias, Job.user_id == UserAlias.client_id
+            )
             count_query = select(func.count(Job.id))
             
             # Apply filters

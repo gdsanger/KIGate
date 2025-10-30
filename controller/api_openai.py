@@ -60,16 +60,20 @@ class OpenAIController:
         Returns:
             aiapiresult: The result containing response content, success status, and any error messages
         """
-        logger.info(f"Processing OpenAI request for job_id: {request.job_id}, user_id: {request.user_id}")
+        # Capture job_id and user_id at entry to prevent any mutation issues during async processing
+        job_id = request.job_id
+        user_id = request.user_id
+        
+        logger.info(f"Processing OpenAI request for job_id: {job_id}, user_id: {user_id}")
         
         # Check if OpenAI client is initialized
         if not self.client:
             error_msg = "OpenAI API key is not configured"
-            logger.error(f"Configuration error for job_id {request.job_id}: {error_msg}")
+            logger.error(f"Configuration error for job_id {job_id}: {error_msg}")
             
             return aiapiresult(
-                job_id=request.job_id,
-                user_id=request.user_id,
+                job_id=job_id,
+                user_id=user_id,
                 content="",
                 success=False,
                 error_message=error_msg
@@ -132,13 +136,13 @@ class OpenAIController:
                 tokens_used = 0
                 if hasattr(response, 'usage') and response.usage:
                     tokens_used = response.usage.total_tokens
-                    logger.debug(f"Token usage for job_id {request.job_id}: {tokens_used}")
+                    logger.debug(f"Token usage for job_id {job_id}: {tokens_used}")
                 
-                logger.info(f"Successfully received response for job_id: {request.job_id}")
+                logger.info(f"Successfully received response for job_id: {job_id}")
                 
                 result = aiapiresult(
-                    job_id=request.job_id,
-                    user_id=request.user_id,
+                    job_id=job_id,
+                    user_id=user_id,
                     content=content,
                     success=True,
                     error_message=None
@@ -148,11 +152,11 @@ class OpenAIController:
                 return result
             else:
                 error_msg = "No response choices returned from OpenAI API"
-                logger.error(f"Error for job_id {request.job_id}: {error_msg}")
+                logger.error(f"Error for job_id {job_id}: {error_msg}")
                 
                 return aiapiresult(
-                    job_id=request.job_id,
-                    user_id=request.user_id,
+                    job_id=job_id,
+                    user_id=user_id,
                     content="",
                     success=False,
                     error_message=error_msg
@@ -160,11 +164,11 @@ class OpenAIController:
                 
         except openai.RateLimitError as e:
             error_msg = f"OpenAI API rate limit exceeded: {str(e)}"
-            logger.error(f"Rate limit error for job_id {request.job_id}: {error_msg}")
+            logger.error(f"Rate limit error for job_id {job_id}: {error_msg}")
             
             return aiapiresult(
-                job_id=request.job_id,
-                user_id=request.user_id,
+                job_id=job_id,
+                user_id=user_id,
                 content="",
                 success=False,
                 error_message=error_msg
@@ -172,11 +176,11 @@ class OpenAIController:
             
         except openai.AuthenticationError as e:
             error_msg = f"OpenAI API authentication failed: {str(e)}"
-            logger.error(f"Authentication error for job_id {request.job_id}: {error_msg}")
+            logger.error(f"Authentication error for job_id {job_id}: {error_msg}")
             
             return aiapiresult(
-                job_id=request.job_id,
-                user_id=request.user_id,
+                job_id=job_id,
+                user_id=user_id,
                 content="",
                 success=False,
                 error_message=error_msg
@@ -184,11 +188,11 @@ class OpenAIController:
             
         except openai.APIError as e:
             error_msg = f"OpenAI API error: {str(e)}"
-            logger.error(f"API error for job_id {request.job_id}: {error_msg}")
+            logger.error(f"API error for job_id {job_id}: {error_msg}")
             
             return aiapiresult(
-                job_id=request.job_id,
-                user_id=request.user_id,
+                job_id=job_id,
+                user_id=user_id,
                 content="",
                 success=False,
                 error_message=error_msg
@@ -196,11 +200,11 @@ class OpenAIController:
             
         except Exception as e:
             error_msg = f"Unexpected error: {str(e)}"
-            logger.error(f"Unexpected error for job_id {request.job_id}: {error_msg}")
+            logger.error(f"Unexpected error for job_id {job_id}: {error_msg}")
             
             return aiapiresult(
-                job_id=request.job_id,
-                user_id=request.user_id,
+                job_id=job_id,
+                user_id=user_id,
                 content="",
                 success=False,
                 error_message=error_msg

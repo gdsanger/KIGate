@@ -14,6 +14,7 @@ class AgentService:
     """Service for managing agent YAML files"""
     
     AGENTS_DIR = Path(__file__).parent.parent / "agents"
+    CLONE_PREFIX = "klone: "
     
     @classmethod
     def _get_yaml_path(cls, name: str) -> Path:
@@ -150,15 +151,15 @@ class AgentService:
         
         # Extract base name by removing existing clone prefixes to prevent long names
         base_name = original_agent.name
-        if base_name.startswith('klone: '):
+        if base_name.startswith(cls.CLONE_PREFIX):
             # Remove existing clone prefix (e.g., "klone: agent" -> "agent")
-            base_name = base_name[7:]  # Remove "klone: "
+            base_name = base_name[len(cls.CLONE_PREFIX):]
         
         # Generate unique clone name with "klone: " prefix
-        clone_name = f"klone: {base_name}"
+        clone_name = f"{cls.CLONE_PREFIX}{base_name}"
         counter = 1
         while await cls.agent_exists(clone_name):
-            clone_name = f"klone: {base_name} {counter}"
+            clone_name = f"{cls.CLONE_PREFIX}{base_name} {counter}"
             counter += 1
         
         # Create the cloned agent data, including parameters

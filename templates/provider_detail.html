@@ -216,19 +216,55 @@
                     <tr id="model-row-{{ model.id }}">
                         <td><strong>{{ model.model_name }}</strong></td>
                         <td><code>{{ model.model_id }}</code></td>
-                        <td>
-                            {% if model.input_price_per_million is not none %}
-                                <span class="text-success">€{{ "%.2f"|format(model.input_price_per_million) }}</span>
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
+                        <td class="price-cell" onclick="enablePriceEdit(this, '{{ model.id }}', 'input_price', {{ model.input_price_per_million if model.input_price_per_million is not none else 'null' }})">
+                            <span id="input-price-display-{{ model.id }}" class="price-display">
+                                {% if model.input_price_per_million is not none %}
+                                    <span class="text-success">€{{ "%.2f"|format(model.input_price_per_million) }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </span>
+                            <div id="input-price-edit-{{ model.id }}" class="price-edit" style="display: none;">
+                                <form hx-patch="/admin/providers/{{ provider.id }}/models/{{ model.id }}/price"
+                                      hx-trigger="blur from:input"
+                                      hx-target="#input-price-display-{{ model.id }}"
+                                      hx-swap="innerHTML"
+                                      onsubmit="return false;">
+                                    <input type="hidden" name="field" value="input_price">
+                                    <input type="number" 
+                                           step="0.01" 
+                                           name="value" 
+                                           class="form-control form-control-sm inline-price-input"
+                                           value="{{ model.input_price_per_million if model.input_price_per_million is not none else '' }}"
+                                           placeholder="z.B. 30.00"
+                                           onblur="disablePriceEdit('{{ model.id }}', 'input_price')">
+                                </form>
+                            </div>
                         </td>
-                        <td>
-                            {% if model.output_price_per_million is not none %}
-                                <span class="text-success">€{{ "%.2f"|format(model.output_price_per_million) }}</span>
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
+                        <td class="price-cell" onclick="enablePriceEdit(this, '{{ model.id }}', 'output_price', {{ model.output_price_per_million if model.output_price_per_million is not none else 'null' }})">
+                            <span id="output-price-display-{{ model.id }}" class="price-display">
+                                {% if model.output_price_per_million is not none %}
+                                    <span class="text-success">€{{ "%.2f"|format(model.output_price_per_million) }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </span>
+                            <div id="output-price-edit-{{ model.id }}" class="price-edit" style="display: none;">
+                                <form hx-patch="/admin/providers/{{ provider.id }}/models/{{ model.id }}/price"
+                                      hx-trigger="blur from:input"
+                                      hx-target="#output-price-display-{{ model.id }}"
+                                      hx-swap="innerHTML"
+                                      onsubmit="return false;">
+                                    <input type="hidden" name="field" value="output_price">
+                                    <input type="number" 
+                                           step="0.01" 
+                                           name="value" 
+                                           class="form-control form-control-sm inline-price-input"
+                                           value="{{ model.output_price_per_million if model.output_price_per_million is not none else '' }}"
+                                           placeholder="z.B. 60.00"
+                                           onblur="disablePriceEdit('{{ model.id }}', 'output_price')">
+                                </form>
+                            </div>
                         </td>
                         <td>
                             {% if model.is_active %}
@@ -314,7 +350,57 @@
     </div>
 </div>
 
+<style>
+.price-cell {
+    cursor: pointer;
+    position: relative;
+}
+
+.price-cell:hover {
+    background-color: #f8f9fa;
+}
+
+.inline-price-input {
+    width: 120px;
+    display: inline-block;
+}
+
+.price-edit form {
+    display: inline-block;
+}
+</style>
+
 <script>
+function enablePriceEdit(cell, modelId, priceType, currentValue) {
+    // Prevent event from bubbling if clicking on input
+    if (event.target.tagName === 'INPUT') {
+        return;
+    }
+    
+    const displayElem = document.getElementById(`${priceType}-display-${modelId}`);
+    const editElem = document.getElementById(`${priceType}-edit-${modelId}`);
+    const inputElem = editElem.querySelector('input[name="value"]');
+    
+    // Hide display, show edit
+    displayElem.style.display = 'none';
+    editElem.style.display = 'inline-block';
+    
+    // Focus the input
+    inputElem.focus();
+    inputElem.select();
+}
+
+function disablePriceEdit(modelId, priceType) {
+    setTimeout(() => {
+        const displayElem = document.getElementById(`${priceType}-display-${modelId}`);
+        const editElem = document.getElementById(`${priceType}-edit-${modelId}`);
+        
+        // Show display, hide edit
+        displayElem.style.display = 'inline-block';
+        editElem.style.display = 'none';
+    }, 200); // Small delay to allow htmx to complete the request
+}
+
 function toggleEditMode() {
     const viewMode = document.getElementById('viewMode');
     const editMode = document.getElementById('editMode');

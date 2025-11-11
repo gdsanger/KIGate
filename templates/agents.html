@@ -54,6 +54,10 @@
                             <i class="bi bi-play-circle"></i>
                         </button>
                         
+                        <button type="button" class="btn btn-outline-secondary" onclick="cloneAgent('{{ agent.name }}')" title="Agent klonen">
+                            <i class="bi bi-files"></i>
+                        </button>
+                        
                         <button type="button" class="btn btn-outline-danger" onclick="deleteAgent('{{ agent.name }}')">
                             <i class="bi bi-trash"></i>
                         </button>
@@ -132,6 +136,9 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+                <button type="button" id="clone_agent_button" class="btn btn-outline-secondary" onclick="cloneAgentFromModal()">
+                    <i class="bi bi-files"></i> Klonen
+                </button>
                 <a id="edit_agent_link" href="#" class="btn btn-primary">
                     <i class="bi bi-pencil"></i> Bearbeiten
                 </a>
@@ -266,6 +273,11 @@ function cloneAgent(name) {
                 alert('Fehler beim Klonen des Agenten');
             });
     }
+}
+
+function cloneAgentFromModal() {
+    const agentName = document.getElementById('view_agent_name').textContent;
+    cloneAgent(agentName);
 }
 
 function deleteAgent(name) {

@@ -9,7 +9,12 @@
             Agent bearbeiten: {{ agent.name }}
         {% endif %}
     </h1>
-    <div>
+    <div class="btn-group">
+        {% if mode != "create" %}
+        <button type="button" class="btn btn-outline-secondary" onclick="cloneCurrentAgent()" title="Agent klonen">
+            <i class="bi bi-files"></i> Klonen
+        </button>
+        {% endif %}
         <a href="/admin/agents" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
         </a>
@@ -266,6 +271,24 @@ async function loadModelsForProvider() {
         modelSelect.innerHTML = '<option value="">Fehler beim Laden der Modelle</option>';
         modelHint.textContent = 'Fehler beim Laden der Modelle';
     }
+}
+
+function cloneCurrentAgent() {
+    {% if agent %}
+    const agentName = "{{ agent.name }}";
+    if (confirm(`Möchten Sie den Agent "${agentName}" klonen?`)) {
+        fetch(`/admin/agents/${encodeURIComponent(agentName)}/clone`, {method: 'POST'})
+            .then(response => response.json())
+            .then(data => {
+                // Navigate to edit page for the cloned agent
+                window.location.href = `/admin/agents/${encodeURIComponent(data.cloned_agent.name)}/edit`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Fehler beim Klonen des Agenten');
+            });
+    }
+    {% endif %}
 }
 </script>
 {% endblock %}

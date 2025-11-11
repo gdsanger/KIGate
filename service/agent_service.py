@@ -14,6 +14,7 @@ class AgentService:
     """Service for managing agent YAML files"""
     
     AGENTS_DIR = Path(__file__).parent.parent / "agents"
+    CLONE_PREFIX = "klone: "
     
     @classmethod
     def _get_yaml_path(cls, name: str) -> Path:
@@ -142,34 +143,34 @@ class AgentService:
     
     @classmethod
     async def clone_agent(cls, name: str) -> Agent:
-        """Clone an existing agent with '-clone' suffix"""
+        """Clone an existing agent with 'klone: ' prefix"""
         # Get the original agent
         original_agent = await cls.get_agent_by_name(name)
         if not original_agent:
             raise ValueError(f"Agent with name '{name}' not found")
         
-        # Extract base name by removing existing clone suffixes to prevent long names
+        # Extract base name by removing existing clone prefixes to prevent long names
         base_name = original_agent.name
-        if '-clone' in base_name:
-            # Remove existing clone suffixes (e.g., "agent-clone-1" -> "agent")
-            parts = base_name.split('-clone')
-            base_name = parts[0]
+        if base_name.startswith(cls.CLONE_PREFIX):
+            # Remove existing clone prefix (e.g., "klone: agent" -> "agent")
+            base_name = base_name[len(cls.CLONE_PREFIX):]
         
-        # Generate unique clone name
-        clone_name = f"{base_name}-clone"
+        # Generate unique clone name with "klone: " prefix
+        clone_name = f"{cls.CLONE_PREFIX}{base_name}"
         counter = 1
         while await cls.agent_exists(clone_name):
-            clone_name = f"{base_name}-clone-{counter}"
+            clone_name = f"{cls.CLONE_PREFIX}{base_name} {counter}"
             counter += 1
         
-        # Create the cloned agent data
+        # Create the cloned agent data, including parameters
         agent_data = AgentCreate(
             name=clone_name,
             description=original_agent.description,
             role=original_agent.role,
             provider=original_agent.provider,
             model=original_agent.model,
-            task=original_agent.task
+            task=original_agent.task,
+            parameters=original_agent.parameters
         )
         
         # Create the cloned agent

@@ -20,6 +20,8 @@ from model.provider import Provider, ProviderModel
 from model.settings import Settings
 # Import AIAuditLog model to ensure it's registered with Base
 from model.ai_audit_log import AIAuditLog
+# Import JobStatistics model to ensure it's registered with Base
+from model.job_statistics import JobStatistics
 
 # Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./kigate.db")

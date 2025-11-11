@@ -82,4 +82,4 @@ Logs/
 
 # Temporary files
 /tmp/
-temp/
+temp/*.png

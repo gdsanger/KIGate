@@ -1553,6 +1553,150 @@ async def toggle_provider_model(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@admin_router.get("/providers/{provider_id}/detail", response_class=HTMLResponse)
+async def admin_provider_detail(
+    provider_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_async_session),
+    message: Optional[str] = None,
+    message_type: Optional[str] = None,
+    admin_user: str = Depends(get_admin_user)
+):
+    """Provider detail page with models management"""
+    provider = await ProviderService.get_provider(db, provider_id, include_models=True)
+    if not provider:
+        return RedirectResponse(
+            url=f"/admin/providers?message=Provider nicht gefunden&message_type=danger",
+            status_code=303
+        )
+    
+    return templates.TemplateResponse("provider_detail.html", {
+        "request": request,
+        "provider": provider,
+        "message": message,
+        "message_type": message_type
+    })
+
+
+@admin_router.post("/providers/{provider_id}/models/create")
+async def create_provider_model(
+    provider_id: str,
+    db: AsyncSession = Depends(get_async_session),
+    model_name: str = Form(...),
+    model_id: str = Form(...),
+    input_price_per_million: Optional[float] = Form(None),
+    output_price_per_million: Optional[float] = Form(None),
+    is_active: bool = Form(False),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Create new provider model"""
+    try:
+        from model.provider import ProviderModelCreate
+        
+        # Validate provider exists
+        provider = await ProviderService.get_provider(db, provider_id)
+        if not provider:
+            return RedirectResponse(
+                url="/admin/providers?message=Provider nicht gefunden&message_type=danger",
+                status_code=303
+            )
+        
+        model_data = ProviderModelCreate(
+            provider_id=provider_id,
+            model_name=model_name,
+            model_id=model_id,
+            is_active=is_active,
+            input_price_per_million=input_price_per_million,
+            output_price_per_million=output_price_per_million
+        )
+        
+        await ProviderService.create_provider_model(db, model_data)
+        await db.commit()
+        
+        return RedirectResponse(
+            url=f"/admin/providers/{provider_id}/detail?message=Modell wurde erfolgreich erstellt&message_type=success",
+            status_code=303
+        )
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error creating model: {str(e)}")
+        return RedirectResponse(
+            url=f"/admin/providers/{provider_id}/detail?message={quote(f'Fehler beim Erstellen des Modells: {str(e)}')}&message_type=danger",
+            status_code=303
+        )
+
+
+@admin_router.post("/providers/{provider_id}/models/{model_id}/update")
+async def update_provider_model_route(
+    provider_id: str,
+    model_id: str,
+    db: AsyncSession = Depends(get_async_session),
+    model_name: Optional[str] = Form(None),
+    input_price_per_million: Optional[float] = Form(None),
+    output_price_per_million: Optional[float] = Form(None),
+    is_active: bool = Form(False),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Update provider model"""
+    try:
+        # Validate provider exists
+        provider = await ProviderService.get_provider(db, provider_id)
+        if not provider:
+            return RedirectResponse(
+                url="/admin/providers?message=Provider nicht gefunden&message_type=danger",
+                status_code=303
+            )
+        
+        model_data = ProviderModelUpdate(
+            model_name=model_name,
+            is_active=is_active,
+            input_price_per_million=input_price_per_million,
+            output_price_per_million=output_price_per_million
+        )
+        
+        updated_model = await ProviderService.update_provider_model(db, model_id, model_data)
+        if not updated_model:
+            return RedirectResponse(
+                url=f"/admin/providers/{provider_id}/detail?message=Modell nicht gefunden&message_type=danger",
+                status_code=303
+            )
+        
+        await db.commit()
+        
+        return RedirectResponse(
+            url=f"/admin/providers/{provider_id}/detail?message=Modell wurde erfolgreich aktualisiert&message_type=success",
+            status_code=303
+        )
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error updating model: {str(e)}")
+        return RedirectResponse(
+            url=f"/admin/providers/{provider_id}/detail?message=Fehler beim Aktualisieren des Modells&message_type=danger",
+            status_code=303
+        )
+
+
+@admin_router.delete("/providers/{provider_id}/models/{model_id}")
+async def delete_provider_model(
+    provider_id: str,
+    model_id: str,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Delete provider model"""
+    try:
+        success = await ProviderService.delete_provider_model(db, model_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Modell nicht gefunden")
+        
+        await db.commit()
+        
+        return JSONResponse({"message": "Modell wurde gelöscht"})
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @admin_router.get("/api/providers")
 async def get_all_providers_api(
     db: AsyncSession = Depends(get_async_session),

@@ -32,7 +32,7 @@
         <tbody>
             {% for provider in providers %}
             <tr>
-                <td><strong>{{ provider.name }}</strong></td>
+                <td><a href="/admin/providers/{{ provider.id }}/detail" class="text-decoration-none"><strong>{{ provider.name }}</strong></a></td>
                 <td>
                     {% if provider.provider_type == 'openai' %}
                         <span class="badge bg-success">OpenAI</span>
@@ -54,20 +54,16 @@
                     {% endif %}
                 </td>
                 <td>
-                    <span class="badge bg-primary">{{ provider.models|length }} Modelle</span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showModels('{{ provider.id }}', '{{ provider.name }}')">
-                        <i class="bi bi-list"></i>
-                    </button>
+                    <a href="/admin/providers/{{ provider.id }}/detail" class="badge bg-primary text-decoration-none">
+                        {{ provider.models|length }} Modelle
+                    </a>
                 </td>
                 <td>{{ provider.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
                 <td>
                     <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" class="btn btn-outline-primary" onclick="editProvider('{{ provider.id }}')">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-info" onclick="fetchModels('{{ provider.id }}', '{{ provider.name }}')">
-                            <i class="bi bi-cloud-download"></i>
-                        </button>
+                        <a href="/admin/providers/{{ provider.id }}/detail" class="btn btn-outline-primary" title="Details anzeigen">
+                            <i class="bi bi-eye"></i>
+                        </a>
                         <button type="button" class="btn btn-outline-danger" onclick="deleteProvider('{{ provider.id }}', '{{ provider.name }}')">
                             <i class="bi bi-trash"></i>
                         </button>
@@ -134,82 +130,6 @@
     </div>
 </div>
 
-<!-- Edit Provider Modal -->
-<div class="modal fade" id="editProviderModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Provider bearbeiten</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editProviderForm" method="POST">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="edit_name" class="form-label">Name *</label>
-                        <input type="text" class="form-control" id="edit_name" name="name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_provider_type" class="form-label">Provider-Typ</label>
-                        <input type="text" class="form-control" id="edit_provider_type" disabled>
-                    </div>
-                    <div class="mb-3">
-                        <label for="edit_api_key" class="form-label">API Key</label>
-                        <input type="password" class="form-control" id="edit_api_key" name="api_key">
-                    </div>
-                    <div class="mb-3" id="edit_api_url_field">
-                        <label for="edit_api_url" class="form-label">API URL</label>
-                        <input type="text" class="form-control" id="edit_api_url" name="api_url">
-                    </div>
-                    <div class="mb-3" id="edit_org_id_field">
-                        <label for="edit_organization_id" class="form-label">Organization ID</label>
-                        <input type="text" class="form-control" id="edit_organization_id" name="organization_id">
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active">
-                        <label class="form-check-label" for="edit_is_active">
-                            Aktiv
-                        </label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Speichern</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Models Modal -->
-<div class="modal fade" id="modelsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modelsModalTitle">Modelle</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Model ID</th>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Aktion</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modelsList">
-                        <!-- Models will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
 function updateProviderFields() {
     const providerType = document.getElementById('provider_type').value;
@@ -225,38 +145,6 @@ function updateProviderFields() {
     } else {
         apiUrlField.style.display = 'none';
         orgIdField.style.display = 'none';
-    }
-}
-
-async function editProvider(providerId) {
-    try {
-        const response = await fetch(`/admin/api/providers/${providerId}`);
-        const provider = await response.json();
-        
-        document.getElementById('edit_name').value = provider.name;
-        document.getElementById('edit_provider_type').value = provider.provider_type;
-        document.getElementById('edit_api_key').value = provider.api_key || '';
-        document.getElementById('edit_api_url').value = provider.api_url || '';
-        document.getElementById('edit_organization_id').value = provider.organization_id || '';
-        document.getElementById('edit_is_active').checked = provider.is_active;
-        
-        // Show/hide fields based on provider type
-        if (provider.provider_type === 'ollama') {
-            document.getElementById('edit_api_url_field').style.display = 'block';
-            document.getElementById('edit_org_id_field').style.display = 'none';
-        } else if (provider.provider_type === 'openai') {
-            document.getElementById('edit_api_url_field').style.display = 'none';
-            document.getElementById('edit_org_id_field').style.display = 'block';
-        } else {
-            document.getElementById('edit_api_url_field').style.display = 'none';
-            document.getElementById('edit_org_id_field').style.display = 'none';
-        }
-        
-        document.getElementById('editProviderForm').action = `/admin/providers/${providerId}/update`;
-        
-        new bootstrap.Modal(document.getElementById('editProviderModal')).show();
-    } catch (error) {
-        alert('Fehler beim Laden der Provider-Daten: ' + error.message);
     }
 }
 
@@ -278,89 +166,6 @@ async function deleteProvider(providerId, providerName) {
         }
     } catch (error) {
         alert('Fehler beim Löschen: ' + error.message);
-    }
-}
-
-async function fetchModels(providerId, providerName) {
-    if (!confirm(`Möchten Sie die Modelle vom Provider "${providerName}" abrufen?`)) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/admin/providers/${providerId}/fetch-models`, {
-            method: 'POST'
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-            alert(result.message);
-            window.location.reload();
-        } else {
-            alert('Fehler: ' + result.detail);
-        }
-    } catch (error) {
-        alert('Fehler beim Abrufen der Modelle: ' + error.message);
-    }
-}
-
-async function showModels(providerId, providerName) {
-    try {
-        const response = await fetch(`/admin/api/providers/${providerId}`);
-        const provider = await response.json();
-        
-        document.getElementById('modelsModalTitle').textContent = `Modelle - ${providerName}`;
-        
-        const modelsList = document.getElementById('modelsList');
-        modelsList.innerHTML = '';
-        
-        if (provider.models && provider.models.length > 0) {
-            provider.models.forEach(model => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><code>${model.model_id}</code></td>
-                    <td>${model.model_name}</td>
-                    <td>
-                        ${model.is_active ? 
-                            '<span class="badge bg-success">Aktiv</span>' : 
-                            '<span class="badge bg-secondary">Inaktiv</span>'}
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-${model.is_active ? 'secondary' : 'success'}" 
-                                onclick="toggleModel('${providerId}', '${model.id}')">
-                            <i class="bi bi-${model.is_active ? 'pause' : 'play'}"></i>
-                        </button>
-                    </td>
-                `;
-                modelsList.appendChild(row);
-            });
-        } else {
-            modelsList.innerHTML = '<tr><td colspan="4" class="text-center">Keine Modelle verfügbar. Bitte laden Sie Modelle vom Provider.</td></tr>';
-        }
-        
-        new bootstrap.Modal(document.getElementById('modelsModal')).show();
-    } catch (error) {
-        alert('Fehler beim Laden der Modelle: ' + error.message);
-    }
-}
-
-async function toggleModel(providerId, modelId) {
-    try {
-        const response = await fetch(`/admin/providers/${providerId}/models/${modelId}/toggle`, {
-            method: 'POST'
-        });
-        
-        if (response.ok) {
-            // Reload the models modal
-            const providerResponse = await fetch(`/admin/api/providers/${providerId}`);
-            const provider = await providerResponse.json();
-            showModels(providerId, provider.name);
-        } else {
-            const error = await response.json();
-            alert('Fehler: ' + error.detail);
-        }
-    } catch (error) {
-        alert('Fehler beim Umschalten des Model-Status: ' + error.message);
     }
 }
 </script>

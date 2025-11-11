@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <a href="/admin/providers" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        Provider Details: {{ provider.name }}
+    </h1>
+</div>
+
+{% if message %}
+<div class="alert alert-{{ message_type }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- Provider Information Card -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Provider Informationen</h5>
+        <button type="button" class="btn btn-sm btn-primary" onclick="toggleEditMode()">
+            <i class="bi bi-pencil"></i> Bearbeiten
+        </button>
+    </div>
+    <div class="card-body">
+        <!-- View Mode -->
+        <div id="viewMode">
+            <dl class="row">
+                <dt class="col-sm-3">Name</dt>
+                <dd class="col-sm-9">{{ provider.name }}</dd>
+
+                <dt class="col-sm-3">Typ</dt>
+                <dd class="col-sm-9">
+                    {% if provider.provider_type == 'openai' %}
+                        <span class="badge bg-success">OpenAI</span>
+                    {% elif provider.provider_type == 'gemini' %}
+                        <span class="badge bg-info">Gemini</span>
+                    {% elif provider.provider_type == 'claude' %}
+                        <span class="badge bg-warning">Claude</span>
+                    {% elif provider.provider_type == 'ollama' %}
+                        <span class="badge bg-secondary">Ollama</span>
+                    {% endif %}
+                </dd>
+
+                <dt class="col-sm-3">API Key</dt>
+                <dd class="col-sm-9">
+                    {% if provider.api_key %}
+                        <code>{{ provider.api_key[:10] }}...</code>
+                    {% else %}
+                        <span class="text-muted">Nicht gesetzt</span>
+                    {% endif %}
+                </dd>
+
+                {% if provider.api_url %}
+                <dt class="col-sm-3">API URL</dt>
+                <dd class="col-sm-9"><code>{{ provider.api_url }}</code></dd>
+                {% endif %}
+
+                {% if provider.organization_id %}
+                <dt class="col-sm-3">Organization ID</dt>
+                <dd class="col-sm-9"><code>{{ provider.organization_id }}</code></dd>
+                {% endif %}
+
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">
+                    {% if provider.is_active %}
+                        <span class="badge bg-success">Aktiv</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inaktiv</span>
+                    {% endif %}
+                </dd>
+
+                <dt class="col-sm-3">Erstellt am</dt>
+                <dd class="col-sm-9">{{ provider.created_at.strftime('%d.%m.%Y %H:%M') }}</dd>
+
+                {% if provider.updated_at %}
+                <dt class="col-sm-3">Aktualisiert am</dt>
+                <dd class="col-sm-9">{{ provider.updated_at.strftime('%d.%m.%Y %H:%M') }}</dd>
+                {% endif %}
+            </dl>
+        </div>
+
+        <!-- Edit Mode -->
+        <div id="editMode" style="display: none;">
+            <form method="POST" action="/admin/providers/{{ provider.id }}/update">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name *</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ provider.name }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Provider-Typ</label>
+                    <input type="text" class="form-control" value="{{ provider.provider_type }}" disabled>
+                    <small class="form-text text-muted">Der Provider-Typ kann nach der Erstellung nicht geändert werden.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label for="api_key" class="form-label">API Key</label>
+                    <input type="password" class="form-control" id="api_key" name="api_key" value="{{ provider.api_key or '' }}">
+                    <small class="form-text text-muted">
+                        {% if provider.provider_type in ['openai', 'gemini', 'claude'] %}
+                            Erforderlich für {{ provider.provider_type }}
+                        {% endif %}
+                    </small>
+                </div>
+
+                {% if provider.provider_type == 'ollama' %}
+                <div class="mb-3">
+                    <label for="api_url" class="form-label">API URL</label>
+                    <input type="text" class="form-control" id="api_url" name="api_url" value="{{ provider.api_url or '' }}">
+                    <small class="form-text text-muted">Erforderlich für Ollama</small>
+                </div>
+                {% endif %}
+
+                {% if provider.provider_type == 'openai' %}
+                <div class="mb-3">
+                    <label for="organization_id" class="form-label">Organization ID</label>
+                    <input type="text" class="form-control" id="organization_id" name="organization_id" value="{{ provider.organization_id or '' }}">
+                    <small class="form-text text-muted">Optional für OpenAI</small>
+                </div>
+                {% endif %}
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if provider.is_active %}checked{% endif %}>
+                    <label class="form-check-label" for="is_active">
+                        Aktiv
+                    </label>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleEditMode()">Abbrechen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Models Section -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Modelle ({{ provider.models|length }})</h5>
+        <div>
+            <button type="button" class="btn btn-sm btn-info" onclick="fetchModels()">
+                <i class="bi bi-cloud-download"></i> Modelle vom Provider abrufen
+            </button>
+            <button type="button" class="btn btn-sm btn-success" onclick="toggleCreateModelForm()">
+                <i class="bi bi-plus-circle"></i> Neues Modell
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Create Model Form (hidden by default) -->
+        <div id="createModelForm" style="display: none;" class="mb-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">Neues Modell erstellen</h6>
+                    <form method="POST" action="/admin/providers/{{ provider.id }}/models/create">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="model_name" class="form-label">Model Name *</label>
+                                <input type="text" class="form-control" id="model_name" name="model_name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="model_id" class="form-label">Model ID *</label>
+                                <input type="text" class="form-control" id="model_id" name="model_id" required>
+                                <small class="form-text text-muted">API-Identifier (z.B. gpt-4, claude-3-opus)</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="input_price_per_million" class="form-label">Preis Input (pro 1 Mio. Token)</label>
+                                <input type="number" step="0.01" class="form-control" id="input_price_per_million" name="input_price_per_million" placeholder="z.B. 30.00">
+                                <small class="form-text text-muted">In EUR, z.B. 30.00 für €30 pro 1M Tokens</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="output_price_per_million" class="form-label">Preis Output (pro 1 Mio. Token)</label>
+                                <input type="number" step="0.01" class="form-control" id="output_price_per_million" name="output_price_per_million" placeholder="z.B. 60.00">
+                                <small class="form-text text-muted">In EUR, z.B. 60.00 für €60 pro 1M Tokens</small>
+                            </div>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="create_is_active" name="is_active" checked>
+                            <label class="form-check-label" for="create_is_active">
+                                Aktiv
+                            </label>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">Modell erstellen</button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleCreateModelForm()">Abbrechen</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Models Table -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Model ID</th>
+                        <th>Input Preis (1M Token)</th>
+                        <th>Output Preis (1M Token)</th>
+                        <th>Status</th>
+                        <th>Erstellt</th>
+                        <th>Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for model in provider.models %}
+                    <tr id="model-row-{{ model.id }}">
+                        <td><strong>{{ model.model_name }}</strong></td>
+                        <td><code>{{ model.model_id }}</code></td>
+                        <td>
+                            {% if model.input_price_per_million is not none %}
+                                <span class="text-success">€{{ "%.2f"|format(model.input_price_per_million) }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if model.output_price_per_million is not none %}
+                                <span class="text-success">€{{ "%.2f"|format(model.output_price_per_million) }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if model.is_active %}
+                                <span class="badge bg-success">Aktiv</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inaktiv</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ model.created_at.strftime('%d.%m.%Y') }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="editModel('{{ model.id }}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-{{ 'secondary' if model.is_active else 'success' }}" 
+                                        onclick="toggleModelStatus('{{ model.id }}', {{ 'true' if model.is_active else 'false' }})">
+                                    <i class="bi bi-{{ 'pause' if model.is_active else 'play' }}"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger" onclick="deleteModel('{{ model.id }}', '{{ model.model_name }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Edit form row (hidden by default) -->
+                    <tr id="edit-row-{{ model.id }}" style="display: none;">
+                        <td colspan="7">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Modell bearbeiten</h6>
+                                    <form method="POST" action="/admin/providers/{{ provider.id }}/models/{{ model.id }}/update">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="edit_model_name_{{ model.id }}" class="form-label">Model Name *</label>
+                                                <input type="text" class="form-control" id="edit_model_name_{{ model.id }}" 
+                                                       name="model_name" value="{{ model.model_name }}" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="edit_model_id_{{ model.id }}" class="form-label">Model ID</label>
+                                                <input type="text" class="form-control" id="edit_model_id_{{ model.id }}" 
+                                                       value="{{ model.model_id }}" disabled>
+                                                <small class="form-text text-muted">Die Model ID kann nicht geändert werden</small>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="edit_input_price_{{ model.id }}" class="form-label">Preis Input (pro 1 Mio. Token)</label>
+                                                <input type="number" step="0.01" class="form-control" id="edit_input_price_{{ model.id }}" 
+                                                       name="input_price_per_million" value="{{ model.input_price_per_million or '' }}" placeholder="z.B. 30.00">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="edit_output_price_{{ model.id }}" class="form-label">Preis Output (pro 1 Mio. Token)</label>
+                                                <input type="number" step="0.01" class="form-control" id="edit_output_price_{{ model.id }}" 
+                                                       name="output_price_per_million" value="{{ model.output_price_per_million or '' }}" placeholder="z.B. 60.00">
+                                            </div>
+                                        </div>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="edit_is_active_{{ model.id }}" 
+                                                   name="is_active" {% if model.is_active %}checked{% endif %}>
+                                            <label class="form-check-label" for="edit_is_active_{{ model.id }}">
+                                                Aktiv
+                                            </label>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary">Speichern</button>
+                                            <button type="button" class="btn btn-secondary" onclick="cancelEditModel('{{ model.id }}')">Abbrechen</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            Keine Modelle vorhanden. Verwenden Sie "Modelle vom Provider abrufen" oder erstellen Sie ein neues Modell.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleEditMode() {
+    const viewMode = document.getElementById('viewMode');
+    const editMode = document.getElementById('editMode');
+    
+    if (viewMode.style.display === 'none') {
+        viewMode.style.display = 'block';
+        editMode.style.display = 'none';
+    } else {
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+    }
+}
+
+function toggleCreateModelForm() {
+    const form = document.getElementById('createModelForm');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+    } else {
+        form.style.display = 'none';
+    }
+}
+
+function editModel(modelId) {
+    // Hide the normal row
+    document.getElementById('model-row-' + modelId).style.display = 'none';
+    // Show the edit row
+    document.getElementById('edit-row-' + modelId).style.display = 'table-row';
+}
+
+function cancelEditModel(modelId) {
+    // Show the normal row
+    document.getElementById('model-row-' + modelId).style.display = 'table-row';
+    // Hide the edit row
+    document.getElementById('edit-row-' + modelId).style.display = 'none';
+}
+
+async function toggleModelStatus(modelId, currentStatus) {
+    try {
+        const response = await fetch(`/admin/providers/{{ provider.id }}/models/${modelId}/toggle`, {
+            method: 'POST'
+        });
+        
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            const error = await response.json();
+            alert('Fehler: ' + error.detail);
+        }
+    } catch (error) {
+        alert('Fehler beim Umschalten des Model-Status: ' + error.message);
+    }
+}
+
+async function deleteModel(modelId, modelName) {
+    if (!confirm(`Möchten Sie das Modell "${modelName}" wirklich löschen? Dies kann nicht rückgängig gemacht werden.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/providers/{{ provider.id }}/models/${modelId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            const error = await response.json();
+            alert('Fehler beim Löschen: ' + error.detail);
+        }
+    } catch (error) {
+        alert('Fehler beim Löschen: ' + error.message);
+    }
+}
+
+async function fetchModels() {
+    if (!confirm('Möchten Sie die Modelle vom Provider abrufen? Dies kann bestehende Modelle aktualisieren.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/providers/{{ provider.id }}/fetch-models`, {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert(result.message);
+            window.location.reload();
+        } else {
+            alert('Fehler: ' + result.detail);
+        }
+    } catch (error) {
+        alert('Fehler beim Abrufen der Modelle: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

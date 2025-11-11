@@ -1593,6 +1593,14 @@ async def create_provider_model(
     try:
         from model.provider import ProviderModelCreate
         
+        # Validate provider exists
+        provider = await ProviderService.get_provider(db, provider_id)
+        if not provider:
+            return RedirectResponse(
+                url="/admin/providers?message=Provider nicht gefunden&message_type=danger",
+                status_code=303
+            )
+        
         model_data = ProviderModelCreate(
             provider_id=provider_id,
             model_name=model_name,
@@ -1631,6 +1639,14 @@ async def update_provider_model_route(
 ):
     """Update provider model"""
     try:
+        # Validate provider exists
+        provider = await ProviderService.get_provider(db, provider_id)
+        if not provider:
+            return RedirectResponse(
+                url="/admin/providers?message=Provider nicht gefunden&message_type=danger",
+                status_code=303
+            )
+        
         model_data = ProviderModelUpdate(
             model_name=model_name,
             is_active=is_active,

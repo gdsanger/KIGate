@@ -134,9 +134,13 @@ class OpenAIController:
                 
                 # Get token usage if available
                 tokens_used = 0
+                input_tokens = 0
+                output_tokens = 0
                 if hasattr(response, 'usage') and response.usage:
                     tokens_used = response.usage.total_tokens
-                    logger.debug(f"Token usage for job_id {job_id}: {tokens_used}")
+                    input_tokens = response.usage.prompt_tokens
+                    output_tokens = response.usage.completion_tokens
+                    logger.debug(f"Token usage for job_id {job_id}: total={tokens_used}, input={input_tokens}, output={output_tokens}")
                 
                 logger.info(f"Successfully received response for job_id: {job_id}")
                 
@@ -145,10 +149,11 @@ class OpenAIController:
                     user_id=user_id,
                     content=content,
                     success=True,
-                    error_message=None
+                    error_message=None,
+                    tokens_used=tokens_used,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens
                 )
-                # Attach token usage for rate limiting
-                result.tokens_used = tokens_used
                 return result
             else:
                 error_msg = "No response choices returned from OpenAI API"

@@ -134,7 +134,9 @@ class ProviderService:
             provider_id=model_data.provider_id,
             model_name=model_data.model_name,
             model_id=model_data.model_id,
-            is_active=model_data.is_active
+            is_active=model_data.is_active,
+            input_price_per_million=model_data.input_price_per_million,
+            output_price_per_million=model_data.output_price_per_million
         )
         
         db.add(model)

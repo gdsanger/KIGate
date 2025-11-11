@@ -33,7 +33,8 @@ class JobService:
                 model=job_data.model,
                 status=job_data.status or "created",
                 client_ip=job_data.client_ip if hasattr(job_data, 'client_ip') else None,
-                token_count=job_data.token_count if hasattr(job_data, 'token_count') else None
+                token_count=job_data.token_count if hasattr(job_data, 'token_count') else None,
+                output_token_count=job_data.output_token_count if hasattr(job_data, 'output_token_count') else None
             )
             
             db.add(db_job)
@@ -122,6 +123,26 @@ class JobService:
         except Exception as e:
             logger.error(f"Error updating job {job_id} token count: {str(e)}")
             return False
+    
+    @classmethod
+    async def update_job_output_token_count(cls, db: AsyncSession, job_id: str, output_token_count: int) -> bool:
+        """Update job output token count"""
+        try:
+            result = await db.execute(select(Job).where(Job.id == job_id))
+            job = result.scalar_one_or_none()
+            
+            if job:
+                job.output_token_count = output_token_count
+                await db.flush()
+                logger.info(f"Updated job {job_id} output token count to {output_token_count}")
+                return True
+            
+            logger.warning(f"Job {job_id} not found for output token count update")
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error updating job {job_id} output token count: {str(e)}")
+            return False
 
     @classmethod
     async def get_jobs_paginated(
@@ -189,7 +210,8 @@ class JobService:
                     'created_at': job.created_at,
                     'duration': job.duration,
                     'client_ip': job.client_ip,
-                    'token_count': job.token_count
+                    'token_count': job.token_count,
+                    'output_token_count': job.output_token_count
                 }
                 job_list.append(job_dict)
             

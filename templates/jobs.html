@@ -73,7 +73,9 @@
                 <th>Modell</th>
                 <th>Status</th>
                 <th>Client IP</th>
-                <th>Tokens</th>
+                <th>Input Tokens</th>
+                <th>Output Tokens</th>
+                <th>Ca. Kosten</th>
                 <th>Erstellt am</th>
                 <th>Dauer (ms)</th>
             </tr>
@@ -118,6 +120,20 @@
                     {% endif %}
                 </td>
                 <td>
+                    {% if job.output_token_count %}
+                        <span class="text-muted">{{ "{:,}".format(job.output_token_count) }}</span>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if job.estimated_cost is not none %}
+                        <span class="text-success">{{ "%.4f"|format(job.estimated_cost) }} €</span>
+                    {% else %}
+                        <span class="text-muted" title="Preise für dieses Modell nicht hinterlegt">-</span>
+                    {% endif %}
+                </td>
+                <td>
                     <span title="{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}">
                         {{ job.created_at.strftime('%d.%m.%Y %H:%M') }}
                     </span>
@@ -132,7 +148,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="10" class="text-center text-muted">Keine Jobs vorhanden</td>
+                <td colspan="12" class="text-center text-muted">Keine Jobs vorhanden</td>
             </tr>
             {% endfor %}
         </tbody>

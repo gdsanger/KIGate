@@ -94,6 +94,11 @@ def migrate_database_schema(connection):
                 logger.info("Database migration: Adding missing 'token_count' column to jobs table")
                 connection.execute(text("ALTER TABLE jobs ADD COLUMN token_count INTEGER"))
                 logger.info("Database migration: Successfully added 'token_count' column to jobs table")
+            
+            if 'output_token_count' not in column_names:
+                logger.info("Database migration: Adding missing 'output_token_count' column to jobs table")
+                connection.execute(text("ALTER TABLE jobs ADD COLUMN output_token_count INTEGER"))
+                logger.info("Database migration: Successfully added 'output_token_count' column to jobs table")
             else:
                 logger.debug("Database migration: 'duration' column already exists in jobs table")
         
@@ -162,6 +167,25 @@ def migrate_database_schema(connection):
                 logger.info("Database migration: Adding missing 'last_reset_time' column to users table")
                 connection.execute(text("ALTER TABLE users ADD COLUMN last_reset_time DATETIME"))
                 logger.info("Database migration: Successfully added 'last_reset_time' column to users table")
+        
+        # Check if provider_models table exists and add pricing columns if missing
+        provider_models_result = connection.execute(
+            text("SELECT name FROM sqlite_master WHERE type='table' AND name='provider_models'")
+        ).fetchone()
+        
+        if provider_models_result:
+            columns_result = connection.execute(text("PRAGMA table_info(provider_models)")).fetchall()
+            column_names = [col[1] for col in columns_result]
+            
+            if 'input_price_per_million' not in column_names:
+                logger.info("Database migration: Adding missing 'input_price_per_million' column to provider_models table")
+                connection.execute(text("ALTER TABLE provider_models ADD COLUMN input_price_per_million FLOAT"))
+                logger.info("Database migration: Successfully added 'input_price_per_million' column to provider_models table")
+            
+            if 'output_price_per_million' not in column_names:
+                logger.info("Database migration: Adding missing 'output_price_per_million' column to provider_models table")
+                connection.execute(text("ALTER TABLE provider_models ADD COLUMN output_price_per_million FLOAT"))
+                logger.info("Database migration: Successfully added 'output_price_per_million' column to provider_models table")
                 
     except Exception as e:
         logger.error(f"Error during database migration: {str(e)}")

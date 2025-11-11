@@ -18,7 +18,7 @@ from model.job import Job
 from model.application_user import ApplicationUser, ApplicationUserCreate, ApplicationUserUpdate, ApplicationUserPasswordChange
 from model.ai_agent_generator import AgentGenerationRequest, AgentGenerationResponse, AgentGenerationReview
 from model.repository import Repository, RepositoryCreate, RepositoryUpdate
-from model.provider import ProviderCreate, ProviderUpdate, ProviderModelUpdate
+from model.provider import ProviderCreate, ProviderUpdate, ProviderModelUpdate, ProviderModel
 
 from service.user_service import UserService
 from service.agent_service import AgentService
@@ -39,6 +39,47 @@ import re
 admin_router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory="templates")
 logger = logging.getLogger(__name__)
+
+
+async def _enrich_jobs_with_costs(db: AsyncSession, jobs: list):
+    """
+    Enrich jobs with cost information based on token counts and model pricing.
+    Adds 'estimated_cost' field to each job dict.
+    """
+    # Get all provider models with pricing information
+    provider_models_result = await db.execute(
+        select(ProviderModel).where(
+            ProviderModel.input_price_per_million.isnot(None),
+            ProviderModel.output_price_per_million.isnot(None)
+        )
+    )
+    provider_models = provider_models_result.scalars().all()
+    
+    # Create a lookup map: model_id -> pricing info
+    model_pricing = {}
+    for pm in provider_models:
+        model_pricing[pm.model_id] = {
+            'input_price': pm.input_price_per_million,
+            'output_price': pm.output_price_per_million
+        }
+    
+    # Calculate cost for each job
+    for job in jobs:
+        estimated_cost = None
+        
+        # Check if we have pricing for this model
+        if job['model'] in model_pricing:
+            pricing = model_pricing[job['model']]
+            input_tokens = job.get('token_count', 0) or 0
+            output_tokens = job.get('output_token_count', 0) or 0
+            
+            # Calculate cost: (tokens / 1,000,000) * price_per_million
+            input_cost = (input_tokens / 1_000_000) * pricing['input_price']
+            output_cost = (output_tokens / 1_000_000) * pricing['output_price']
+            estimated_cost = input_cost + output_cost
+        
+        # Add to job dict with 4 decimal places
+        job['estimated_cost'] = estimated_cost
 
 
 @admin_router.get("/login", response_class=HTMLResponse)
@@ -721,6 +762,9 @@ async def admin_jobs(
         # Get distinct providers
         provider_result = await db.execute(select(distinct(Job.provider)).order_by(Job.provider))
         providers = [p for p in provider_result.scalars().all() if p]
+        
+        # Enrich jobs with cost information
+        await _enrich_jobs_with_costs(db, jobs)
         
         return templates.TemplateResponse("jobs.html", {
             "request": request,

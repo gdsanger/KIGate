@@ -9,6 +9,7 @@ Centralized agent-driven API Gateway for AI with integrated user management syst
 - 👥 **User Management** - Complete CRUD operations
 - 🤖 **Agent Management** - YAML-based AI agent configuration and management
 - 🔌 **Provider Configuration** - Dynamic AI provider and model management (OpenAI, Gemini, Claude, Ollama)
+- 📊 **Job Statistics** - Comprehensive usage analytics with charts and cost tracking
 - 🛡️ **Authentication** - Bearer token and API key authentication
 - 🔒 **Security** - 128-bit client secrets, user activation/deactivation
 
@@ -36,6 +37,7 @@ uvicorn main:app --reload
 - **User Management**: http://localhost:8000/admin/users
 - **Agent Management**: http://localhost:8000/admin/agents
 - **Provider Configuration**: http://localhost:8000/admin/providers
+- **Job Statistics**: http://localhost:8000/admin/job-statistics
 - **API Documentation**: http://localhost:8000/docs
 
 For detailed information on provider configuration, see [Provider Configuration Guide](docs/PROVIDER_CONFIGURATION.md).
@@ -72,6 +74,27 @@ curl "http://localhost:8000/health?api_key={client_id}:{client_secret}"
 
 📖 **[Complete Agent Documentation](README_AGENTS.md)** - Learn how to create and manage AI agents  
 🚀 **[Quick Start Guide](QUICK_START_AGENTS.md)** - Get started with agents in 5 minutes
+
+### Job Statistics Features
+
+- ✅ Multi-dimensional analytics (by agent, provider, model)
+- ✅ Time-based aggregation (daily, weekly, monthly)
+- ✅ Interactive charts and visualizations with Chart.js
+- ✅ Cost tracking with automatic calculation from token usage
+- ✅ Manual refresh from UI
+- ✅ Automated updates via CLI script for cron jobs
+- ✅ Performance metrics including average job duration
+
+📊 **[Job Statistics Documentation](JOB_STATISTICS_DOCUMENTATION.md)** - Complete guide to usage analytics and cost tracking
+
+### Automated Statistics Updates
+
+To set up daily automated statistics updates via cron:
+
+```bash
+# Run daily at 1:00 AM
+0 1 * * * cd /path/to/KIGate && /usr/bin/python3 cli_update_statistics.py >> /var/log/kigate_stats.log 2>&1
+```
 
 ## Database Schema
 

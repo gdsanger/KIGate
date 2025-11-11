@@ -1676,6 +1676,70 @@ async def update_provider_model_route(
         )
 
 
+@admin_router.patch("/providers/{provider_id}/models/{model_id}/price")
+async def update_model_price_inline(
+    provider_id: str,
+    model_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Update model price inline with htmx"""
+    try:
+        form_data = await request.form()
+        field = form_data.get("field")
+        value_str = form_data.get("value", "").strip()
+        
+        # Convert value to float or None
+        value = None
+        if value_str:
+            try:
+                value = float(value_str)
+            except ValueError:
+                return HTMLResponse(
+                    content='<span class="text-danger">Ungültiger Wert</span>',
+                    status_code=400
+                )
+        
+        # Prepare update data based on field
+        if field == "input_price":
+            update_data = ProviderModelUpdate(input_price_per_million=value)
+        elif field == "output_price":
+            update_data = ProviderModelUpdate(output_price_per_million=value)
+        else:
+            return HTMLResponse(
+                content='<span class="text-danger">Ungültiges Feld</span>',
+                status_code=400
+            )
+        
+        # Update the model
+        updated_model = await ProviderService.update_provider_model(db, model_id, update_data)
+        if not updated_model:
+            return HTMLResponse(
+                content='<span class="text-danger">Modell nicht gefunden</span>',
+                status_code=404
+            )
+        
+        await db.commit()
+        
+        # Return formatted price
+        if value is not None:
+            return HTMLResponse(
+                content=f'<span class="text-success">€{value:.2f}</span>'
+            )
+        else:
+            return HTMLResponse(
+                content='<span class="text-muted">-</span>'
+            )
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error updating price: {str(e)}")
+        return HTMLResponse(
+            content='<span class="text-danger">Fehler</span>',
+            status_code=500
+        )
+
+
 @admin_router.delete("/providers/{provider_id}/models/{model_id}")
 async def delete_provider_model(
     provider_id: str,

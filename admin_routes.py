@@ -23,6 +23,7 @@ from model.provider import ProviderCreate, ProviderUpdate, ProviderModelUpdate, 
 from service.user_service import UserService
 from service.agent_service import AgentService
 from service.job_service import JobService
+from service.job_statistics_service import JobStatisticsService
 from service.application_user_service import ApplicationUserService
 from service.ai_agent_generator_service import AIAgentGeneratorService
 from service.repository_service import RepositoryService, GitHubSyncError
@@ -1832,4 +1833,63 @@ async def admin_audit_logs(
     except Exception as e:
         logger.error(f"Error loading audit logs page: {str(e)}")
         raise HTTPException(status_code=500, detail="Fehler beim Laden der Audit Logs")
+
+
+@admin_router.get("/job-statistics", response_class=HTMLResponse)
+async def admin_job_statistics(
+    request: Request,
+    period: str = "month",
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Job statistics page with visualizations"""
+    try:
+        # Validate period
+        if period not in ['day', 'week', 'month']:
+            period = 'month'
+        
+        # Get statistics by different dimensions
+        agent_stats = await JobStatisticsService.get_statistics_by_agent(db, period_type=period, limit=20)
+        provider_stats = await JobStatisticsService.get_statistics_by_provider(db, period_type=period, limit=20)
+        model_stats = await JobStatisticsService.get_statistics_by_model(db, period_type=period, limit=20)
+        
+        # Get time series data for the last 12 periods
+        time_series = await JobStatisticsService.get_time_series_data(db, period_type=period, limit=12)
+        
+        return templates.TemplateResponse("job_statistics.html", {
+            "request": request,
+            "current_period": period,
+            "agent_stats": agent_stats,
+            "provider_stats": provider_stats,
+            "model_stats": model_stats,
+            "time_series": time_series,
+        })
+        
+    except Exception as e:
+        logger.error(f"Error loading job statistics page: {str(e)}")
+        raise HTTPException(status_code=500, detail="Fehler beim Laden der Job-Statistiken")
+
+
+@admin_router.post("/job-statistics/refresh")
+async def refresh_job_statistics(
+    request: Request,
+    db: AsyncSession = Depends(get_async_session),
+    admin_user: str = Depends(get_admin_user)
+):
+    """Manually refresh job statistics"""
+    try:
+        counts = await JobStatisticsService.calculate_all_statistics(db)
+        
+        return JSONResponse({
+            "success": True,
+            "message": f"Statistiken erfolgreich aktualisiert",
+            "counts": counts
+        })
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"Error refreshing job statistics: {str(e)}")
+        return JSONResponse({
+            "success": False,
+            "error": "Fehler beim Aktualisieren der Statistiken"
+        }, status_code=500)
 

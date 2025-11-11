@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Job Statistiken</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button type="button" class="btn btn-sm btn-primary" onclick="refreshStatistics()">
+            <i class="bi bi-arrow-clockwise"></i> Statistiken aktualisieren
+        </button>
+    </div>
+</div>
+
+<!-- Period Selection -->
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="btn-group" role="group" aria-label="Period selection">
+            <a href="/admin/job-statistics?period=day" class="btn btn-sm {% if current_period == 'day' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                Tag
+            </a>
+            <a href="/admin/job-statistics?period=week" class="btn btn-sm {% if current_period == 'week' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                Woche
+            </a>
+            <a href="/admin/job-statistics?period=month" class="btn btn-sm {% if current_period == 'month' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                Monat
+            </a>
+        </div>
+        <small class="text-muted ms-3">
+            {% if current_period == 'day' %}
+                Zeigt Daten der letzten 30 Tage
+            {% elif current_period == 'week' %}
+                Zeigt Daten der letzten 12 Wochen
+            {% else %}
+                Zeigt Daten der letzten 12 Monate
+            {% endif %}
+        </small>
+    </div>
+</div>
+
+<!-- Time Series Chart -->
+{% if time_series %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-graph-up"></i> Zeitverlauf</h5>
+    </div>
+    <div class="card-body">
+        <canvas id="timeSeriesChart" height="80"></canvas>
+    </div>
+</div>
+{% endif %}
+
+<!-- Statistics by Agent -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-robot"></i> Statistiken nach Agent</h5>
+    </div>
+    <div class="card-body">
+        {% if agent_stats %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Agent Name</th>
+                        <th class="text-end">Jobs</th>
+                        <th class="text-end">Input Tokens</th>
+                        <th class="text-end">Output Tokens</th>
+                        <th class="text-end">Ø Dauer (ms)</th>
+                        <th class="text-end">Ca. Kosten</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in agent_stats %}
+                    <tr>
+                        <td><strong>{{ stat.label }}</strong></td>
+                        <td class="text-end">{{ "{:,}".format(stat.job_count) }}</td>
+                        <td class="text-end">{{ "{:,}".format(stat.total_input_tokens) }}</td>
+                        <td class="text-end">{{ "{:,}".format(stat.total_output_tokens) }}</td>
+                        <td class="text-end">
+                            {% if stat.avg_duration %}
+                                {{ "{:,.0f}".format(stat.avg_duration) }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end text-success"><strong>{{ "%.4f"|format(stat.total_cost) }} €</strong></td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-active">
+                        <td><strong>Gesamt</strong></td>
+                        <td class="text-end"><strong>{{ "{:,}".format(agent_stats|sum(attribute='job_count')) }}</strong></td>
+                        <td class="text-end"><strong>{{ "{:,}".format(agent_stats|sum(attribute='total_input_tokens')) }}</strong></td>
+                        <td class="text-end"><strong>{{ "{:,}".format(agent_stats|sum(attribute='total_output_tokens')) }}</strong></td>
+                        <td class="text-end">-</td>
+                        <td class="text-end text-success"><strong>{{ "%.4f"|format(agent_stats|sum(attribute='total_cost')) }} €</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Agent Cost Chart -->
+        <canvas id="agentCostChart" height="80"></canvas>
+        {% else %}
+        <p class="text-muted">Keine Statistiken verfügbar. Bitte aktualisieren Sie die Statistiken.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Statistics by Provider -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-cloud"></i> Statistiken nach Provider</h5>
+    </div>
+    <div class="card-body">
+        {% if provider_stats %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Provider</th>
+                        <th class="text-end">Jobs</th>
+                        <th class="text-end">Input Tokens</th>
+                        <th class="text-end">Output Tokens</th>
+                        <th class="text-end">Ca. Kosten</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in provider_stats %}
+                    <tr>
+                        <td><span class="badge bg-info">{{ stat.label }}</span></td>
+                        <td class="text-end">{{ "{:,}".format(stat.job_count) }}</td>
+                        <td class="text-end">{{ "{:,}".format(stat.total_input_tokens) }}</td>
+                        <td class="text-end">{{ "{:,}".format(stat.total_output_tokens) }}</td>
+                        <td class="text-end text-success"><strong>{{ "%.4f"|format(stat.total_cost) }} €</strong></td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-active">
+                        <td><strong>Gesamt</strong></td>
+                        <td class="text-end"><strong>{{ "{:,}".format(provider_stats|sum(attribute='job_count')) }}</strong></td>
+                        <td class="text-end"><strong>{{ "{:,}".format(provider_stats|sum(attribute='total_input_tokens')) }}</strong></td>
+                        <td class="text-end"><strong>{{ "{:,}".format(provider_stats|sum(attribute='total_output_tokens')) }}</strong></td>
+                        <td class="text-end text-success"><strong>{{ "%.4f"|format(provider_stats|sum(attribute='total_cost')) }} €</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Provider Distribution Chart -->
+        <canvas id="providerChart" height="80"></canvas>
+        {% else %}
+        <p class="text-muted">Keine Statistiken verfügbar. Bitte aktualisieren Sie die Statistiken.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Statistics by Model -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-cpu"></i> Statistiken nach Modell</h5>
+    </div>
+    <div class="card-body">
+        {% if model_stats %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Modell</th>
+                        <th class="text-end">Jobs</th>
+                        <th class="text-end">Input Tokens</th>
+                        <th class="text-end">Output Tokens</th>
+                        <th class="text-end">Ca. Kosten</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in model_stats %}
+                    <tr>
+                        <td><code>{{ stat.label }}</code></td>
+                        <td class="text-end">{{ "{:,}".format(stat.job_count) }}</td>
+                        <td class="text-end">{{ "{:,}".format(stat.total_input_tokens) }}</td>
+                        <td class="text-end">{{ "{:,}".format(stat.total_output_tokens) }}</td>
+                        <td class="text-end text-success"><strong>{{ "%.4f"|format(stat.total_cost) }} €</strong></td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-active">
+                        <td><strong>Gesamt</strong></td>
+                        <td class="text-end"><strong>{{ "{:,}".format(model_stats|sum(attribute='job_count')) }}</strong></td>
+                        <td class="text-end"><strong>{{ "{:,}".format(model_stats|sum(attribute='total_input_tokens')) }}</strong></td>
+                        <td class="text-end"><strong>{{ "{:,}".format(model_stats|sum(attribute='total_output_tokens')) }}</strong></td>
+                        <td class="text-end text-success"><strong>{{ "%.4f"|format(model_stats|sum(attribute='total_cost')) }} €</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Model Cost Chart -->
+        <canvas id="modelCostChart" height="80"></canvas>
+        {% else %}
+        <p class="text-muted">Keine Statistiken verfügbar. Bitte aktualisieren Sie die Statistiken.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+function refreshStatistics() {
+    if (!confirm('Statistiken jetzt aktualisieren? Dies kann einige Zeit dauern.')) {
+        return;
+    }
+    
+    const btn = event.target.closest('button');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Aktualisiere...';
+    
+    fetch('/admin/job-statistics/refresh', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Statistiken erfolgreich aktualisiert!');
+            location.reload();
+        } else {
+            alert('Fehler: ' + data.error);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Statistiken aktualisieren';
+        }
+    })
+    .catch(error => {
+        alert('Fehler beim Aktualisieren der Statistiken: ' + error);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Statistiken aktualisieren';
+    });
+}
+
+// Chart.js configurations
+const chartColors = [
+    'rgba(54, 162, 235, 0.8)',
+    'rgba(255, 99, 132, 0.8)',
+    'rgba(255, 206, 86, 0.8)',
+    'rgba(75, 192, 192, 0.8)',
+    'rgba(153, 102, 255, 0.8)',
+    'rgba(255, 159, 64, 0.8)',
+    'rgba(199, 199, 199, 0.8)',
+    'rgba(83, 102, 255, 0.8)',
+    'rgba(255, 99, 255, 0.8)',
+    'rgba(99, 255, 132, 0.8)'
+];
+
+{% if time_series %}
+// Time Series Chart
+const timeSeriesCtx = document.getElementById('timeSeriesChart').getContext('2d');
+new Chart(timeSeriesCtx, {
+    type: 'line',
+    data: {
+        labels: [
+            {% for item in time_series %}
+            '{{ item.period_start.strftime('%d.%m.%Y') }}'{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Jobs',
+            data: [{% for item in time_series %}{{ item.job_count }}{% if not loop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            yAxisID: 'y',
+        }, {
+            label: 'Kosten (€)',
+            data: [{% for item in time_series %}{{ item.total_cost }}{% if not loop.last %},{% endif %}{% endfor %}],
+            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            yAxisID: 'y1',
+        }]
+    },
+    options: {
+        responsive: true,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        scales: {
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                title: {
+                    display: true,
+                    text: 'Anzahl Jobs'
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: 'Kosten (€)'
+                },
+                grid: {
+                    drawOnChartArea: false,
+                }
+            }
+        }
+    }
+});
+{% endif %}
+
+{% if agent_stats %}
+// Agent Cost Chart
+const agentCtx = document.getElementById('agentCostChart').getContext('2d');
+new Chart(agentCtx, {
+    type: 'bar',
+    data: {
+        labels: [
+            {% for stat in agent_stats[:10] %}
+            '{{ stat.label }}'{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Kosten (€)',
+            data: [{% for stat in agent_stats[:10] %}{{ stat.total_cost }}{% if not loop.last %},{% endif %}{% endfor %}],
+            backgroundColor: chartColors,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            title: {
+                display: true,
+                text: 'Top 10 Agenten nach Kosten'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Kosten (€)'
+                }
+            }
+        }
+    }
+});
+{% endif %}
+
+{% if provider_stats %}
+// Provider Distribution Chart
+const providerCtx = document.getElementById('providerChart').getContext('2d');
+new Chart(providerCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            {% for stat in provider_stats %}
+            '{{ stat.label }}'{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Kosten (€)',
+            data: [{% for stat in provider_stats %}{{ stat.total_cost }}{% if not loop.last %},{% endif %}{% endfor %}],
+            backgroundColor: chartColors,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Kostenverteilung nach Provider'
+            }
+        }
+    }
+});
+{% endif %}
+
+{% if model_stats %}
+// Model Cost Chart
+const modelCtx = document.getElementById('modelCostChart').getContext('2d');
+new Chart(modelCtx, {
+    type: 'bar',
+    data: {
+        labels: [
+            {% for stat in model_stats[:10] %}
+            '{{ stat.label }}'{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ],
+        datasets: [{
+            label: 'Kosten (€)',
+            data: [{% for stat in model_stats[:10] %}{{ stat.total_cost }}{% if not loop.last %},{% endif %}{% endfor %}],
+            backgroundColor: chartColors,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false
+            },
+            title: {
+                display: true,
+                text: 'Top 10 Modelle nach Kosten'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Kosten (€)'
+                }
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+
+{% endblock %}

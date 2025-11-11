@@ -25,6 +25,7 @@ class Job(Base):
     duration: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     client_ip: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
     token_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    output_token_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
 
 # Pydantic models for API
@@ -37,6 +38,7 @@ class JobCreate(BaseModel):
     status: str = "created"
     client_ip: Optional[str] = None
     token_count: Optional[int] = None
+    output_token_count: Optional[int] = None
 
 
 class JobResponse(BaseModel):
@@ -53,3 +55,4 @@ class JobResponse(BaseModel):
     duration: Optional[int] = None
     client_ip: Optional[str] = None
     token_count: Optional[int] = None
+    output_token_count: Optional[int] = None

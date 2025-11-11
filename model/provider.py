@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, List
 
-from sqlalchemy import Column, String, Boolean, DateTime, Text, func, ForeignKey
+from sqlalchemy import Column, String, Boolean, DateTime, Text, Float, func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -39,6 +39,8 @@ class ProviderModel(Base):
     model_name: Mapped[str] = mapped_column(String(200), nullable=False)
     model_id: Mapped[str] = mapped_column(String(200), nullable=False)  # API identifier
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    input_price_per_million: Mapped[Optional[float]] = mapped_column(Float, nullable=True)  # Price per 1M input tokens
+    output_price_per_million: Mapped[Optional[float]] = mapped_column(Float, nullable=True)  # Price per 1M output tokens
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     # Relationship to provider
@@ -90,6 +92,8 @@ class ProviderModelCreate(BaseModel):
     model_name: str = Field(..., min_length=1, max_length=200)
     model_id: str = Field(..., min_length=1, max_length=200)
     is_active: bool = True
+    input_price_per_million: Optional[float] = None
+    output_price_per_million: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -98,6 +102,8 @@ class ProviderModelUpdate(BaseModel):
     """Model for updating a provider model"""
     model_name: Optional[str] = Field(None, min_length=1, max_length=200)
     is_active: Optional[bool] = None
+    input_price_per_million: Optional[float] = None
+    output_price_per_million: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -109,6 +115,8 @@ class ProviderModelResponse(BaseModel):
     model_name: str
     model_id: str
     is_active: bool
+    input_price_per_million: Optional[float] = None
+    output_price_per_million: Optional[float] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

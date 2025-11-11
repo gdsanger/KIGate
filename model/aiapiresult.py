@@ -7,4 +7,6 @@ class aiapiresult(BaseModel):
     content: str
     success: bool
     error_message: Optional[str] = None
-    tokens_used: int = 0  # Token usage for rate limiting
+    tokens_used: int = 0  # Token usage for rate limiting (total tokens)
+    input_tokens: int = 0  # Input/prompt tokens
+    output_tokens: int = 0  # Output/completion tokens

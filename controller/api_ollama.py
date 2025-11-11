@@ -128,6 +128,8 @@ class OllamaController:
                 if content is None:
                     content = ""
                 
+                # Ollama doesn't provide token usage in the standard response
+                # Set to 0 for consistency with other providers
                 logger.info(f"Successfully received response for job_id: {job_id}")
                 
                 return aiapiresult(
@@ -135,7 +137,10 @@ class OllamaController:
                     user_id=user_id,
                     content=content,
                     success=True,
-                    error_message=None
+                    error_message=None,
+                    tokens_used=0,
+                    input_tokens=0,
+                    output_tokens=0
                 )
             else:
                 error_msg = "No response message returned from Ollama API"

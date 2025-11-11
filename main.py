@@ -417,6 +417,12 @@ async def execute_agent(request: Request, agent_request: AgentExecutionRequest, 
                 # Record the request and token usage for rate limiting
                 await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
                 
+                # Log token usage to job
+                if ai_result.input_tokens > 0:
+                    await JobService.update_job_token_count(db, job.id, ai_result.input_tokens)
+                if ai_result.output_tokens > 0:
+                    await JobService.update_job_output_token_count(db, job.id, ai_result.output_tokens)
+                
                 # Calculate duration in milliseconds
                 duration_ms = int((time.time() - start_time) * 1000)
                 
@@ -766,6 +772,12 @@ async def execute_agent_pdf(
                     from service.rate_limit_service import RateLimitService
                     await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
                     
+                    # Log token usage to job
+                    if ai_result.input_tokens > 0:
+                        await JobService.update_job_token_count(db, job.id, ai_result.input_tokens)
+                    if ai_result.output_tokens > 0:
+                        await JobService.update_job_output_token_count(db, job.id, ai_result.output_tokens)
+                    
                     # Calculate duration in milliseconds
                     duration_ms = int((time.time() - start_time) * 1000)
                     
@@ -998,6 +1010,12 @@ async def execute_agent_docx(
                     # Record the request and token usage for rate limiting (per chunk)
                     from service.rate_limit_service import RateLimitService
                     await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
+                    
+                    # Log token usage to job
+                    if ai_result.input_tokens > 0:
+                        await JobService.update_job_token_count(db, job.id, ai_result.input_tokens)
+                    if ai_result.output_tokens > 0:
+                        await JobService.update_job_output_token_count(db, job.id, ai_result.output_tokens)
                     
                     # Calculate duration in milliseconds
                     duration_ms = int((time.time() - start_time) * 1000)

@@ -24,8 +24,8 @@ from model.ai_audit_log import AIAuditLog
 from model.job_statistics import JobStatistics
 
 # Database configuration
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./kigate.db")
-ASYNC_DATABASE_URL = os.getenv("ASYNC_DATABASE_URL", "sqlite+aiosqlite:///./kigate.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/kigate.db")
+ASYNC_DATABASE_URL = os.getenv("ASYNC_DATABASE_URL", "sqlite+aiosqlite:///./data/kigate.db")
 
 # Create async engine for FastAPI
 async_engine = create_async_engine(

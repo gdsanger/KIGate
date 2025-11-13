@@ -1,0 +1,1097 @@
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - SELECT count(jobs.id) AS count_1 
+FROM jobs
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - [cached since 4.521e+04s ago] ()
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count, users_1.name AS user_name 
+FROM jobs LEFT OUTER JOIN users AS users_1 ON jobs.user_id = users_1.client_id ORDER BY jobs.created_at DESC
+ LIMIT ? OFFSET ?
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - [cached since 4.521e+04s ago] (25, 0)
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - SELECT DISTINCT jobs.status 
+FROM jobs ORDER BY jobs.status
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - [cached since 4.521e+04s ago] ()
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - SELECT DISTINCT jobs.provider 
+FROM jobs ORDER BY jobs.provider
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - [cached since 4.521e+04s ago] ()
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - [cached since 4.524e+04s ago] ()
+2025-11-12 08:30:58 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - SELECT users.client_id, users.client_secret, users.name, users.email, users.role, users.is_active, users.created_at, users.last_login, users.rpm_limit, users.tpm_limit, users.current_rpm, users.current_tpm, users.last_reset_time 
+FROM users 
+WHERE users.client_id = ? AND users.is_active = 1
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('d21db873-2dfc-44af-b8ec-50b71fff6460',)
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - UPDATE users SET last_login=? WHERE users.client_id = ?
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('2025-11-12 10:30:54.605146', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=?, last_reset_time=? WHERE users.client_id = ?
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] (1, 0, '2025-11-12 10:30:54.617457', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - INSERT INTO jobs (id, name, user_id, provider, model, status, duration, client_ip, token_count, output_token_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('8aa942c6-393c-4b9e-a8b7-46201ec16ab8', 'text-keyword-extractor-de-job', '17bb441e-3cb0-4419-a047-a9ad2b3a5802', 'OpenAI', 'gpt-4o-mini', 'created', None, '172.18.248.192', 603, None)
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('8aa942c6-393c-4b9e-a8b7-46201ec16ab8',)
+2025-11-12 11:30:54 - service.job_service - INFO - Created job 8aa942c6-393c-4b9e-a8b7-46201ec16ab8 for user 17bb441e-3cb0-4419-a047-a9ad2b3a5802
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('8aa942c6-393c-4b9e-a8b7-46201ec16ab8',)
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('processing', '8aa942c6-393c-4b9e-a8b7-46201ec16ab8')
+2025-11-12 11:30:54 - service.job_service - INFO - Updated job 8aa942c6-393c-4b9e-a8b7-46201ec16ab8 status to processing
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 11:30:54 - service.ai_service - INFO - Normalized provider 'OpenAI' to 'openai'
+2025-11-12 11:30:54 - service.ai_service - INFO - Routing AI request to provider: openai
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.provider_type = ? AND providers.is_active = 1
+2025-11-12 11:30:54 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('openai',)
+2025-11-12 11:30:54 - service.ai_service - INFO - Using provider configuration from database for 'openai' (ID: 7b2d5f2f-eea9-4468-ba14-9a595f1dd39e)
+2025-11-12 11:30:54 - controller.api_openai - INFO - OpenAI Controller initialized
+2025-11-12 11:30:54 - controller.api_openai - INFO - Processing OpenAI request for job_id: 8aa942c6-393c-4b9e-a8b7-46201ec16ab8, user_id: 17bb441e-3cb0-4419-a047-a9ad2b3a5802
+2025-11-12 11:30:55 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-12 11:30:55 - controller.api_openai - INFO - Successfully received response for job_id: 8aa942c6-393c-4b9e-a8b7-46201ec16ab8
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('8aa942c6-393c-4b9e-a8b7-46201ec16ab8',)
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET token_count=? WHERE jobs.id = ?
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] (610, '8aa942c6-393c-4b9e-a8b7-46201ec16ab8')
+2025-11-12 11:30:55 - service.job_service - INFO - Updated job 8aa942c6-393c-4b9e-a8b7-46201ec16ab8 token count to 610
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('8aa942c6-393c-4b9e-a8b7-46201ec16ab8',)
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET output_token_count=? WHERE jobs.id = ?
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] (11, '8aa942c6-393c-4b9e-a8b7-46201ec16ab8')
+2025-11-12 11:30:55 - service.job_service - INFO - Updated job 8aa942c6-393c-4b9e-a8b7-46201ec16ab8 output token count to 11
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('8aa942c6-393c-4b9e-a8b7-46201ec16ab8',)
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('completed', '8aa942c6-393c-4b9e-a8b7-46201ec16ab8')
+2025-11-12 11:30:55 - service.job_service - INFO - Updated job 8aa942c6-393c-4b9e-a8b7-46201ec16ab8 status to completed
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] ('8aa942c6-393c-4b9e-a8b7-46201ec16ab8',)
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET duration=? WHERE jobs.id = ?
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] (1126, '8aa942c6-393c-4b9e-a8b7-46201ec16ab8')
+2025-11-12 11:30:55 - service.job_service - INFO - Updated job 8aa942c6-393c-4b9e-a8b7-46201ec16ab8 duration to 1126ms
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=? WHERE users.client_id = ?
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - [cached since 5.714e+04s ago] (2, 621, 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-12 11:30:55 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - SELECT users.client_id, users.client_secret, users.name, users.email, users.role, users.is_active, users.created_at, users.last_login, users.rpm_limit, users.tpm_limit, users.current_rpm, users.current_tpm, users.last_reset_time 
+FROM users 
+WHERE users.client_id = ? AND users.is_active = 1
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('d21db873-2dfc-44af-b8ec-50b71fff6460',)
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - UPDATE users SET last_login=? WHERE users.client_id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('2025-11-12 11:15:08.273200', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=?, last_reset_time=? WHERE users.client_id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] (1, 0, '2025-11-12 11:15:08.285667', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - INSERT INTO jobs (id, name, user_id, provider, model, status, duration, client_ip, token_count, output_token_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('12376d39-151f-4e54-a7d3-e014de509db3', 'text-keyword-extractor-de-job', '17bb441e-3cb0-4419-a047-a9ad2b3a5802', 'OpenAI', 'gpt-4o-mini', 'created', None, '172.18.248.192', 790, None)
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('12376d39-151f-4e54-a7d3-e014de509db3',)
+2025-11-12 12:15:08 - service.job_service - INFO - Created job 12376d39-151f-4e54-a7d3-e014de509db3 for user 17bb441e-3cb0-4419-a047-a9ad2b3a5802
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('12376d39-151f-4e54-a7d3-e014de509db3',)
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('processing', '12376d39-151f-4e54-a7d3-e014de509db3')
+2025-11-12 12:15:08 - service.job_service - INFO - Updated job 12376d39-151f-4e54-a7d3-e014de509db3 status to processing
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 12:15:08 - service.ai_service - INFO - Normalized provider 'OpenAI' to 'openai'
+2025-11-12 12:15:08 - service.ai_service - INFO - Routing AI request to provider: openai
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.provider_type = ? AND providers.is_active = 1
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('openai',)
+2025-11-12 12:15:08 - service.ai_service - INFO - Using provider configuration from database for 'openai' (ID: 7b2d5f2f-eea9-4468-ba14-9a595f1dd39e)
+2025-11-12 12:15:08 - controller.api_openai - INFO - OpenAI Controller initialized
+2025-11-12 12:15:08 - controller.api_openai - INFO - Processing OpenAI request for job_id: 12376d39-151f-4e54-a7d3-e014de509db3, user_id: 17bb441e-3cb0-4419-a047-a9ad2b3a5802
+2025-11-12 12:15:08 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-12 12:15:08 - controller.api_openai - INFO - Successfully received response for job_id: 12376d39-151f-4e54-a7d3-e014de509db3
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('12376d39-151f-4e54-a7d3-e014de509db3',)
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET token_count=? WHERE jobs.id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] (797, '12376d39-151f-4e54-a7d3-e014de509db3')
+2025-11-12 12:15:08 - service.job_service - INFO - Updated job 12376d39-151f-4e54-a7d3-e014de509db3 token count to 797
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('12376d39-151f-4e54-a7d3-e014de509db3',)
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET output_token_count=? WHERE jobs.id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] (11, '12376d39-151f-4e54-a7d3-e014de509db3')
+2025-11-12 12:15:08 - service.job_service - INFO - Updated job 12376d39-151f-4e54-a7d3-e014de509db3 output token count to 11
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('12376d39-151f-4e54-a7d3-e014de509db3',)
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('completed', '12376d39-151f-4e54-a7d3-e014de509db3')
+2025-11-12 12:15:08 - service.job_service - INFO - Updated job 12376d39-151f-4e54-a7d3-e014de509db3 status to completed
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] ('12376d39-151f-4e54-a7d3-e014de509db3',)
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET duration=? WHERE jobs.id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] (532, '12376d39-151f-4e54-a7d3-e014de509db3')
+2025-11-12 12:15:08 - service.job_service - INFO - Updated job 12376d39-151f-4e54-a7d3-e014de509db3 duration to 532ms
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=? WHERE users.client_id = ?
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - [cached since 6.006e+04s ago] (2, 808, 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-12 12:15:08 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 22:31:31 - root - INFO - Logging system initialized with file rotation
+2025-11-12 22:31:31 - root - INFO - Logging system initialized with file rotation
+2025-11-12 22:31:31 - main - INFO - Starting KIGate API...
+2025-11-12 22:31:31 - utils.dependency_checker - INFO - Checking dependencies...
+2025-11-12 22:31:31 - utils.dependency_checker - INFO - All core dependencies are installed
+2025-11-12 22:31:31 - utils.dependency_checker - INFO - All provider dependencies are installed
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("users")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("jobs")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("application_users")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("github_issue_records")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("repositories")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("providers")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("provider_models")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("settings")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("ai_audit_logs")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("job_statistics")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT name FROM sqlite_master WHERE type='table' AND name='jobs'
+2025-11-12 22:31:31 - main - INFO - Starting KIGate API...
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00025s] ()
+2025-11-12 22:31:31 - utils.dependency_checker - INFO - Checking dependencies...
+2025-11-12 22:31:31 - utils.dependency_checker - INFO - All core dependencies are installed
+2025-11-12 22:31:31 - utils.dependency_checker - INFO - All provider dependencies are installed
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA table_info(jobs)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT name FROM sqlite_master WHERE type='table' AND name='users'
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00017s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA table_info(users)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00014s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT name FROM sqlite_master WHERE type='table' AND name='application_users'
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA table_info(application_users)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA table_info(users)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.00196s ago] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("users")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT name FROM sqlite_master WHERE type='table' AND name='provider_models'
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA table_info(provider_models)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("jobs")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("application_users")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("github_issue_records")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("repositories")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("providers")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - service.cache_service - WARNING - Redis connection failed: AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?. Cache will be disabled.
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("provider_models")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("settings")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("ai_audit_logs")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA main.table_info("job_statistics")
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT name FROM sqlite_master WHERE type='table' AND name='jobs'
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00023s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA table_info(jobs)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT name FROM sqlite_master WHERE type='table' AND name='users'
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA table_info(users)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT name FROM sqlite_master WHERE type='table' AND name='application_users'
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA table_info(application_users)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00012s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA table_info(users)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.001663s ago] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT name FROM sqlite_master WHERE type='table' AND name='provider_models'
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00013s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - PRAGMA table_info(provider_models)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00011s] ()
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 22:31:31 - service.cache_service - WARNING - Redis connection failed: AUTH <password> called without any password configured for the default user. Are you sure your configuration is correct?. Cache will be disabled.
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00037s] ('sentry_dsn',)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.002428s ago] ('sentry_environment',)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.00331s ago] ('sentry_traces_sample_rate',)
+2025-11-12 22:31:31 - service.settings_service - INFO - Default settings initialized
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.004629s ago] ('sentry_dsn',)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.005407s ago] ('sentry_environment',)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.00618s ago] ('sentry_traces_sample_rate',)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [generated in 0.00035s] ('sentry_dsn',)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.002438s ago] ('sentry_environment',)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.003746s ago] ('sentry_traces_sample_rate',)
+2025-11-12 22:31:31 - service.settings_service - INFO - Default settings initialized
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.005462s ago] ('sentry_dsn',)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.00637s ago] ('sentry_environment',)
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - SELECT settings."key", settings.value, settings.description, settings.is_secret, settings.updated_at 
+FROM settings 
+WHERE settings."key" = ?
+2025-11-12 22:31:31 - sqlalchemy.engine.Engine - INFO - [cached since 0.007315s ago] ('sentry_traces_sample_rate',)
+2025-11-12 22:31:32 - logging_config - INFO - Sentry initialized for environment: production
+2025-11-12 22:31:32 - logging_config - INFO - Sentry initialized for environment: production
+2025-11-12 22:31:32 - main - INFO - KIGate API started successfully
+2025-11-12 22:31:32 - main - INFO - KIGate API started successfully
+2025-11-12 22:31:32 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2025-11-12 22:31:32 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2025-11-12 22:32:03 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:32:03 - sqlalchemy.engine.Engine - INFO - SELECT count(users.client_id) AS count_1 
+FROM users
+2025-11-12 22:32:03 - sqlalchemy.engine.Engine - INFO - [generated in 0.00038s] ()
+2025-11-12 22:32:03 - sqlalchemy.engine.Engine - INFO - SELECT count(users.client_id) AS count_1 
+FROM users 
+WHERE users.is_active = 1
+2025-11-12 22:32:03 - sqlalchemy.engine.Engine - INFO - [generated in 0.00026s] ()
+2025-11-12 22:32:03 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - SELECT count(jobs.id) AS count_1 
+FROM jobs
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - [generated in 0.00034s] ()
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count, users_1.name AS user_name 
+FROM jobs LEFT OUTER JOIN users AS users_1 ON jobs.user_id = users_1.client_id ORDER BY jobs.created_at DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - [generated in 0.00030s] (25, 0)
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - SELECT DISTINCT jobs.status 
+FROM jobs ORDER BY jobs.status
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - [generated in 0.00054s] ()
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - SELECT DISTINCT jobs.provider 
+FROM jobs ORDER BY jobs.provider
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - [generated in 0.00024s] ()
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - [generated in 0.00048s] ()
+2025-11-12 22:32:09 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - SELECT count(jobs.id) AS count_1 
+FROM jobs
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - [cached since 5.092s ago] ()
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count, users_1.name AS user_name 
+FROM jobs LEFT OUTER JOIN users AS users_1 ON jobs.user_id = users_1.client_id ORDER BY jobs.created_at DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - [cached since 5.088s ago] (25, 0)
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - SELECT DISTINCT jobs.status 
+FROM jobs ORDER BY jobs.status
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - [cached since 5.086s ago] ()
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - SELECT DISTINCT jobs.provider 
+FROM jobs ORDER BY jobs.provider
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - [cached since 5.085s ago] ()
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - [cached since 5.084s ago] ()
+2025-11-12 22:32:14 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 22:32:17 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:32:17 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.agent_name AS label, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost, avg(job_statistics.avg_duration) AS avg_duration 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? AND job_statistics.agent_name IS NOT NULL GROUP BY job_statistics.agent_name ORDER BY sum(job_statistics.total_cost) DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:17 - sqlalchemy.engine.Engine - INFO - [generated in 0.00053s] ('month', 20, 0)
+2025-11-12 22:32:17 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.provider AS label, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost, avg(job_statistics.avg_duration) AS avg_duration 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? AND job_statistics.provider IS NOT NULL GROUP BY job_statistics.provider ORDER BY sum(job_statistics.total_cost) DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:17 - sqlalchemy.engine.Engine - INFO - [generated in 0.00029s] ('month', 20, 0)
+2025-11-12 22:32:17 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.model AS label, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost, avg(job_statistics.avg_duration) AS avg_duration 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? AND job_statistics.model IS NOT NULL GROUP BY job_statistics.model ORDER BY sum(job_statistics.total_cost) DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:17 - sqlalchemy.engine.Engine - INFO - [generated in 0.00030s] ('month', 20, 0)
+2025-11-12 22:32:17 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.period_start, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? GROUP BY job_statistics.period_start ORDER BY job_statistics.period_start DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:17 - sqlalchemy.engine.Engine - INFO - [generated in 0.00024s] ('month', 12, 0)
+2025-11-12 22:32:18 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-11-11 00:00:00+00:00 to 2025-11-12 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.03s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [generated in 0.00034s] ('day', '2025-11-11 00:00:00.000000', '2025-11-12 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [generated in 0.00022s] ('2025-11-11 00:00:00.000000', '2025-11-12 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - INSERT INTO job_statistics (id, period_type, period_start, period_end, agent_name, provider, model, job_count, total_input_tokens, total_output_tokens, total_cost, avg_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ... 279 characters truncated ... , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING calculated_at, id
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [generated in 0.00021s (insertmanyvalues) 1/1 (ordered)] ('8a5733fa-2c57-4f4e-819d-824cb5c9769f', 'day', '2025-11-11 00:00:00.000000', '2025-11-12 00:00:00.000000', 'html-to-markdown-converter-job', None, None, 21, 21709, 0, 0.010854500000000007, 3020.0476190476193, 'a7979b88-0168-499c-918a-ca52bb90bcec', 'day', '2025-11-11 00:00:00.000000', '2025-11-12 00:00:00.000000', 'teams-support-analysis-agent-job', None, None, 5, 6680, 0, 0.0167, 7474.4, '76722e10-d0a4-40f9-9393-2878a67150b3', 'day', '2025-11-11 00:00:00.000000', '2025-11-12 00:00:00.000000', 'markdown-to-html-converter-job', None, None, 5, 4250, 0, 0.002125, 7465.8, '57e41818-58ed-40d1-9cca-3f13417e7e3d', 'day', '2025-11-11 00:00:00.000000', '2025-11-12 00:00:00.000000', 'text-keyword-extractor-de-job', None, None, 17, 9330, 12, 0.00335585, 1342.3529411764705, 'd91acc5b-53b5-4ef7-b27f-eed9ae28bbf0', 'day' ... 32 parameters truncated ... 0.0332825, 18311.0, '0a48fc05-e022-4733-8d03-fa7d5f362450', 'day', '2025-11-11 00:00:00.000000', '2025-11-12 00:00:00.000000', None, 'OpenAI', None, 56, 54607, 801, 0.07037685000000002, None, '27581384-5279-4c08-96e5-bad67e4862dc', 'day', '2025-11-11 00:00:00.000000', '2025-11-12 00:00:00.000000', None, None, 'gpt-3.5-turbo', 35, 31930, 0, 0.015965000000000014, None, '0b9c5e99-6c41-4081-857c-fd84ca4ceb89', 'day', '2025-11-11 00:00:00.000000', '2025-11-12 00:00:00.000000', None, None, 'gpt-4o', 10, 18346, 789, 0.053755000000000004, None, 'ef718a57-2e4e-4fb2-aea5-7a36f7ebd93a', 'day', '2025-11-11 00:00:00.000000', '2025-11-12 00:00:00.000000', None, None, 'gpt-4o-mini', 11, 4331, 12, 0.00065685, None)
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Created 11 statistics records for day
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-11-10 00:00:00+00:00 to 2025-11-11 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.04s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.009426s ago] ('day', '2025-11-10 00:00:00.000000', '2025-11-11 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.008788s ago] ('2025-11-10 00:00:00.000000', '2025-11-11 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - INSERT INTO job_statistics (id, period_type, period_start, period_end, agent_name, provider, model, job_count, total_input_tokens, total_output_tokens, total_cost, avg_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ... 393 characters truncated ... , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING calculated_at, id
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.009908s ago (insertmanyvalues) 1/1 (ordered)] ('17a8efd7-9fc4-4d87-b043-49f6ae0006c0', 'day', '2025-11-10 00:00:00.000000', '2025-11-11 00:00:00.000000', 'html-to-markdown-converter-job', None, None, 167, 65131, 0, 0.03256550000000013, 864.437125748503, '2d953d9e-a717-454d-b392-cb260535cca4', 'day', '2025-11-10 00:00:00.000000', '2025-11-11 00:00:00.000000', 'text-keyword-extractor-de-job', None, None, 7, 5779, 0, 0.0028895, 969.8571428571429, 'ae465a23-a14d-41d1-93f9-a32ea68a4bd7', 'day', '2025-11-10 00:00:00.000000', '2025-11-11 00:00:00.000000', 'teams-support-analysis-agent-job', None, None, 1, 1123, 0, 0.0028075, 7299.0, 'd5ab682e-2952-4592-abb6-dcb9d8a2a785', 'day', '2025-11-10 00:00:00.000000', '2025-11-11 00:00:00.000000', 'markdown-to-html-converter-job', None, None, 1, 793, 0, 0.0003965, 4326.0, 'd52c7807-1464-4819-8027-ca69c0f4523e', 'day' ... 68 parameters truncated ... 0.0, None, '837f20c2-a937-4504-a2cb-0a438bbc60cb', 'day', '2025-11-10 00:00:00.000000', '2025-11-11 00:00:00.000000', None, None, 'gpt-3.5-turbo', 177, 72717, 0, 0.036358500000000085, None, '52058b4e-a6f0-47d3-9d02-eaa85d82ffed', 'day', '2025-11-10 00:00:00.000000', '2025-11-11 00:00:00.000000', None, None, 'gpt-4o', 3, 2407, 0, 0.0060175, None, '335bd70a-1168-4703-bb75-7d81e433f094', 'day', '2025-11-10 00:00:00.000000', '2025-11-11 00:00:00.000000', None, None, 'gpt-4.1', 1, 4129, 0, 0.008258, None, '6906b9a2-ac12-481a-93e0-2bb8624b11ab', 'day', '2025-11-10 00:00:00.000000', '2025-11-11 00:00:00.000000', None, None, 'gemma-3-27b-it', 2, 5924, 0, 0.0, None)
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Created 14 statistics records for day
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-11-09 00:00:00+00:00 to 2025-11-10 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.05s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.02035s ago] ('day', '2025-11-09 00:00:00.000000', '2025-11-10 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.01964s ago] ('2025-11-09 00:00:00.000000', '2025-11-10 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - INSERT INTO job_statistics (id, period_type, period_start, period_end, agent_name, provider, model, job_count, total_input_tokens, total_output_tokens, total_cost, avg_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING calculated_at, id
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.02142s ago (insertmanyvalues) 1/1 (ordered)] ('ce7be8b2-224c-4d14-8c75-2d8f190766c8', 'day', '2025-11-09 00:00:00.000000', '2025-11-10 00:00:00.000000', 'html-to-markdown-converter-job', None, None, 289, 111265, 0, 0.05563249999999991, 1612.39446366782, '1e73dbe6-f9c2-438d-87cd-859d4c7e2608', 'day', '2025-11-09 00:00:00.000000', '2025-11-10 00:00:00.000000', None, 'OpenAI', None, 289, 111265, 0, 0.05563249999999991, None, '9b927445-9e1a-4391-a554-5e53d6084e0f', 'day', '2025-11-09 00:00:00.000000', '2025-11-10 00:00:00.000000', None, None, 'gpt-3.5-turbo', 289, 111265, 0, 0.05563249999999991, None)
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Created 3 statistics records for day
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-11-08 00:00:00+00:00 to 2025-11-09 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.06s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.03116s ago] ('day', '2025-11-08 00:00:00.000000', '2025-11-09 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.03062s ago] ('2025-11-08 00:00:00.000000', '2025-11-09 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - INSERT INTO job_statistics (id, period_type, period_start, period_end, agent_name, provider, model, job_count, total_input_tokens, total_output_tokens, total_cost, avg_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING calculated_at, id
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.03198s ago (insertmanyvalues) 1/1 (ordered)] ('e208ddca-51d5-48e4-bd2b-61dac83d2ef1', 'day', '2025-11-08 00:00:00.000000', '2025-11-09 00:00:00.000000', 'html-to-markdown-converter-job', None, None, 288, 110880, 0, 0.05543999999999991, 1199.2708333333333, 'f2c8fe2a-eb04-471c-80c4-9df089f510e4', 'day', '2025-11-08 00:00:00.000000', '2025-11-09 00:00:00.000000', None, 'OpenAI', None, 288, 110880, 0, 0.05543999999999991, None, 'd98f7490-383e-4746-afe7-f48605fbce49', 'day', '2025-11-08 00:00:00.000000', '2025-11-09 00:00:00.000000', None, None, 'gpt-3.5-turbo', 288, 110880, 0, 0.05543999999999991, None)
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Created 3 statistics records for day
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-11-07 00:00:00+00:00 to 2025-11-08 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.07s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.04061s ago] ('day', '2025-11-07 00:00:00.000000', '2025-11-08 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.03984s ago] ('2025-11-07 00:00:00.000000', '2025-11-08 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - INSERT INTO job_statistics (id, period_type, period_start, period_end, agent_name, provider, model, job_count, total_input_tokens, total_output_tokens, total_cost, avg_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING calculated_at, id
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.04198s ago (insertmanyvalues) 1/1 (ordered)] ('1088eb89-1b4e-4086-b66f-6397d98f151f', 'day', '2025-11-07 00:00:00.000000', '2025-11-08 00:00:00.000000', 'html-to-markdown-converter-job', None, None, 292, 135030, 0, 0.0675149999999998, 1204.8424657534247, '56a5173c-0925-48cd-8515-ad21747eabe2', 'day', '2025-11-07 00:00:00.000000', '2025-11-08 00:00:00.000000', 'teams-support-analysis-agent-job', None, None, 2, 2889, 0, 0.007222500000000001, 14120.5, 'f137a6ba-41a3-4d5d-96e8-0854dffc2343', 'day', '2025-11-07 00:00:00.000000', '2025-11-08 00:00:00.000000', 'markdown-to-html-converter-job', None, None, 2, 1492, 0, 0.0007459999999999999, 6367.5, '50b9860a-c293-4eee-8c9b-be5c05b7ab1f', 'day', '2025-11-07 00:00:00.000000', '2025-11-08 00:00:00.000000', 'text-keyword-extractor-de-job', None, None, 1, 1173, 0, 0.0005865, 695.0, '34dd36fd-31f0-48e8-a017-b8824289c282', 'day', '2025-11-07 00:00:00.000000', '2025-11-08 00:00:00.000000', None, 'OpenAI', None, 297, 140584, 0, 0.0760699999999997, None, 'f6eb2e64-67a4-4d1c-9fc7-28281828f1e0', 'day', '2025-11-07 00:00:00.000000', '2025-11-08 00:00:00.000000', None, None, 'gpt-3.5-turbo', 295, 137695, 0, 0.06884749999999978, None, '50e4622e-7bb4-4f17-990b-3443dd0dddca', 'day', '2025-11-07 00:00:00.000000', '2025-11-08 00:00:00.000000', None, None, 'gpt-4o', 2, 2889, 0, 0.007222500000000001, None)
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Created 7 statistics records for day
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-11-06 00:00:00+00:00 to 2025-11-07 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.08s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.05215s ago] ('day', '2025-11-06 00:00:00.000000', '2025-11-07 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.05155s ago] ('2025-11-06 00:00:00.000000', '2025-11-07 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - INSERT INTO job_statistics (id, period_type, period_start, period_end, agent_name, provider, model, job_count, total_input_tokens, total_output_tokens, total_cost, avg_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ... 507 characters truncated ... , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING calculated_at, id
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.05356s ago (insertmanyvalues) 1/1 (ordered)] ('4e1e48e0-3fb6-46f5-9249-9c0ba453ee94', 'day', '2025-11-06 00:00:00.000000', '2025-11-07 00:00:00.000000', 'html-to-markdown-converter-job', None, None, 293, 132401, 0, 0.06620049999999991, 1486.4948805460751, '0264361c-bf4b-4917-a2ad-35305f14d2aa', 'day', '2025-11-06 00:00:00.000000', '2025-11-07 00:00:00.000000', 'weaviate-data-summary-agent-job', None, None, 9, 5582, 0, 0.0, 6045.666666666667, 'b8d907a5-e18e-4a16-9c48-383ad9527462', 'day', '2025-11-06 00:00:00.000000', '2025-11-07 00:00:00.000000', 'github-issue-creation-agent-job', None, None, 2, 1063, 0, 0.0026574999999999997, 3975.5, 'e52aaee3-dfe7-43d1-8975-c92c8b53d4de', 'day', '2025-11-06 00:00:00.000000', '2025-11-07 00:00:00.000000', 'text-to-title-generator-job', None, None, 2, 853, 0, 0.0004265, 829.5, '5c0e1fc2-9a13-4638-be07-cf09aba49f2e', 'day' ... 104 parameters truncated ... 0.06857149999999987, None, 'aa4a98af-70b3-4bf6-a4e2-a16afd8e6b4e', 'day', '2025-11-06 00:00:00.000000', '2025-11-07 00:00:00.000000', None, None, 'gemma-3-27b-it', 9, 5582, 0, 0.0, None, 'ddd0419f-b746-47af-b77c-c14ddcc5c12a', 'day', '2025-11-06 00:00:00.000000', '2025-11-07 00:00:00.000000', None, None, 'gpt-4o', 5, 3983, 0, 0.009957500000000001, None, 'e61464a0-e71d-4aba-9f98-853c277d1d93', 'day', '2025-11-06 00:00:00.000000', '2025-11-07 00:00:00.000000', None, None, 'gpt-4.1', 3, 11146, 0, 0.022292, None, 'a7bd2d6b-d1b0-42a3-aad7-8b8976f7562b', 'day', '2025-11-06 00:00:00.000000', '2025-11-07 00:00:00.000000', None, None, 'gpt-4.1-mini', 3, 1655, 0, 0.000662, None)
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Created 17 statistics records for day
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-11-05 00:00:00+00:00 to 2025-11-06 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.09s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.06378s ago] ('day', '2025-11-05 00:00:00.000000', '2025-11-06 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.06334s ago] ('2025-11-05 00:00:00.000000', '2025-11-06 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - INSERT INTO job_statistics (id, period_type, period_start, period_end, agent_name, provider, model, job_count, total_input_tokens, total_output_tokens, total_cost, avg_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING calculated_at, id
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.06259s ago (insertmanyvalues) 1/1 (ordered)] ('440dce52-6d40-4115-879a-4d447621e3c4', 'day', '2025-11-05 00:00:00.000000', '2025-11-06 00:00:00.000000', 'text-keyword-extractor-de-job', None, None, 1, 702, 0, 0.000351, 1322.0, 'ec765b4e-1e97-4899-afc3-4d05896b180e', 'day', '2025-11-05 00:00:00.000000', '2025-11-06 00:00:00.000000', 'html-to-markdown-converter-job', None, None, 106, 40810, 0, 0.02040500000000004, 1272.9716981132076, '42982e91-87ce-4ed3-af1d-58ca3dd5091a', 'day', '2025-11-05 00:00:00.000000', '2025-11-06 00:00:00.000000', None, 'OpenAI', None, 107, 41512, 0, 0.020756000000000042, None, 'eaf14572-7e54-4cba-a308-c6015550bc86', 'day', '2025-11-05 00:00:00.000000', '2025-11-06 00:00:00.000000', None, None, 'gpt-3.5-turbo', 107, 41512, 0, 0.020756000000000042, None)
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Created 4 statistics records for day
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-11-04 00:00:00+00:00 to 2025-11-05 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.1s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.07122s ago] ('day', '2025-11-04 00:00:00.000000', '2025-11-05 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.07052s ago] ('2025-11-04 00:00:00.000000', '2025-11-05 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - INSERT INTO job_statistics (id, period_type, period_start, period_end, agent_name, provider, model, job_count, total_input_tokens, total_output_tokens, total_cost, avg_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING calculated_at, id
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.06831s ago (insertmanyvalues) 1/1 (ordered)] ('e023dfd2-c856-4c4a-81fc-28c24542b054', 'day', '2025-11-04 00:00:00.000000', '2025-11-05 00:00:00.000000', 'html-to-markdown-converter-job', None, None, 1, 1021, 0, 0.0005105, 2902.0, '0ad070b2-d770-4ca6-9c2b-0ba1a098cd33', 'day', '2025-11-04 00:00:00.000000', '2025-11-05 00:00:00.000000', 'teams-support-analysis-agent-job', None, None, 1, 1106, 0, 0.002765, 5070.0, 'f6541d64-b084-4ea6-9c26-b969de9a7373', 'day', '2025-11-04 00:00:00.000000', '2025-11-05 00:00:00.000000', 'markdown-to-html-converter-job', None, None, 1, 595, 0, 0.0002975, 6233.0, 'e47a9ab2-3951-4fb8-b67e-1e6848b84147', 'day', '2025-11-04 00:00:00.000000', '2025-11-05 00:00:00.000000', None, 'OpenAI', None, 3, 2722, 0, 0.0035730000000000002, None, '891b6cc2-e02e-4a76-82c0-d95b201c21e1', 'day', '2025-11-04 00:00:00.000000', '2025-11-05 00:00:00.000000', None, None, 'gpt-3.5-turbo', 2, 1616, 0, 0.000808, None, '8f889eb3-4271-42f5-888b-8bb7509980db', 'day', '2025-11-04 00:00:00.000000', '2025-11-05 00:00:00.000000', None, None, 'gpt-4o', 1, 1106, 0, 0.002765, None)
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Created 6 statistics records for day
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-11-03 00:00:00+00:00 to 2025-11-04 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.11s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.0764s ago] ('day', '2025-11-03 00:00:00.000000', '2025-11-04 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.0756s ago] ('2025-11-03 00:00:00.000000', '2025-11-04 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-11-03 00:00:00+00:00 to 2025-11-04 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-11-02 00:00:00+00:00 to 2025-11-03 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.11s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.08131s ago] ('day', '2025-11-02 00:00:00.000000', '2025-11-03 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.08101s ago] ('2025-11-02 00:00:00.000000', '2025-11-03 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-11-02 00:00:00+00:00 to 2025-11-03 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-11-01 00:00:00+00:00 to 2025-11-02 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.12s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.0855s ago] ('day', '2025-11-01 00:00:00.000000', '2025-11-02 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.08483s ago] ('2025-11-01 00:00:00.000000', '2025-11-02 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-11-01 00:00:00+00:00 to 2025-11-02 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-31 00:00:00+00:00 to 2025-11-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.12s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.0893s ago] ('day', '2025-10-31 00:00:00.000000', '2025-11-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.08853s ago] ('2025-10-31 00:00:00.000000', '2025-11-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-31 00:00:00+00:00 to 2025-11-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-30 00:00:00+00:00 to 2025-10-31 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.12s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.09285s ago] ('day', '2025-10-30 00:00:00.000000', '2025-10-31 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.09219s ago] ('2025-10-30 00:00:00.000000', '2025-10-31 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-30 00:00:00+00:00 to 2025-10-31 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-29 00:00:00+00:00 to 2025-10-30 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.13s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.09713s ago] ('day', '2025-10-29 00:00:00.000000', '2025-10-30 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.09678s ago] ('2025-10-29 00:00:00.000000', '2025-10-30 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-29 00:00:00+00:00 to 2025-10-30 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-28 00:00:00+00:00 to 2025-10-29 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.13s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1013s ago] ('day', '2025-10-28 00:00:00.000000', '2025-10-29 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1006s ago] ('2025-10-28 00:00:00.000000', '2025-10-29 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-28 00:00:00+00:00 to 2025-10-29 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-27 00:00:00+00:00 to 2025-10-28 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.14s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1049s ago] ('day', '2025-10-27 00:00:00.000000', '2025-10-28 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1042s ago] ('2025-10-27 00:00:00.000000', '2025-10-28 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-27 00:00:00+00:00 to 2025-10-28 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-26 00:00:00+00:00 to 2025-10-27 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.14s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1084s ago] ('day', '2025-10-26 00:00:00.000000', '2025-10-27 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1076s ago] ('2025-10-26 00:00:00.000000', '2025-10-27 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-26 00:00:00+00:00 to 2025-10-27 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-25 00:00:00+00:00 to 2025-10-26 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.14s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1116s ago] ('day', '2025-10-25 00:00:00.000000', '2025-10-26 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.111s ago] ('2025-10-25 00:00:00.000000', '2025-10-26 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-25 00:00:00+00:00 to 2025-10-26 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-24 00:00:00+00:00 to 2025-10-25 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.15s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1197s ago] ('day', '2025-10-24 00:00:00.000000', '2025-10-25 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1191s ago] ('2025-10-24 00:00:00.000000', '2025-10-25 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-24 00:00:00+00:00 to 2025-10-25 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-23 00:00:00+00:00 to 2025-10-24 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.15s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1237s ago] ('day', '2025-10-23 00:00:00.000000', '2025-10-24 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1229s ago] ('2025-10-23 00:00:00.000000', '2025-10-24 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-23 00:00:00+00:00 to 2025-10-24 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-22 00:00:00+00:00 to 2025-10-23 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.16s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.127s ago] ('day', '2025-10-22 00:00:00.000000', '2025-10-23 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1262s ago] ('2025-10-22 00:00:00.000000', '2025-10-23 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-22 00:00:00+00:00 to 2025-10-23 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-21 00:00:00+00:00 to 2025-10-22 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.16s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.132s ago] ('day', '2025-10-21 00:00:00.000000', '2025-10-22 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1317s ago] ('2025-10-21 00:00:00.000000', '2025-10-22 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-21 00:00:00+00:00 to 2025-10-22 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-20 00:00:00+00:00 to 2025-10-21 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.17s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1363s ago] ('day', '2025-10-20 00:00:00.000000', '2025-10-21 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1355s ago] ('2025-10-20 00:00:00.000000', '2025-10-21 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-20 00:00:00+00:00 to 2025-10-21 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-19 00:00:00+00:00 to 2025-10-20 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.17s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1404s ago] ('day', '2025-10-19 00:00:00.000000', '2025-10-20 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1398s ago] ('2025-10-19 00:00:00.000000', '2025-10-20 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-19 00:00:00+00:00 to 2025-10-20 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-18 00:00:00+00:00 to 2025-10-19 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.17s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1439s ago] ('day', '2025-10-18 00:00:00.000000', '2025-10-19 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1432s ago] ('2025-10-18 00:00:00.000000', '2025-10-19 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-18 00:00:00+00:00 to 2025-10-19 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-17 00:00:00+00:00 to 2025-10-18 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.18s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1496s ago] ('day', '2025-10-17 00:00:00.000000', '2025-10-18 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.149s ago] ('2025-10-17 00:00:00.000000', '2025-10-18 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-17 00:00:00+00:00 to 2025-10-18 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-16 00:00:00+00:00 to 2025-10-17 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.18s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1532s ago] ('day', '2025-10-16 00:00:00.000000', '2025-10-17 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1526s ago] ('2025-10-16 00:00:00.000000', '2025-10-17 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-16 00:00:00+00:00 to 2025-10-17 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-15 00:00:00+00:00 to 2025-10-16 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.19s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1568s ago] ('day', '2025-10-15 00:00:00.000000', '2025-10-16 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.156s ago] ('2025-10-15 00:00:00.000000', '2025-10-16 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-15 00:00:00+00:00 to 2025-10-16 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-14 00:00:00+00:00 to 2025-10-15 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.19s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1601s ago] ('day', '2025-10-14 00:00:00.000000', '2025-10-15 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1593s ago] ('2025-10-14 00:00:00.000000', '2025-10-15 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-14 00:00:00+00:00 to 2025-10-15 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for day from 2025-10-13 00:00:00+00:00 to 2025-10-14 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.19s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1641s ago] ('day', '2025-10-13 00:00:00.000000', '2025-10-14 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1636s ago] ('2025-10-13 00:00:00.000000', '2025-10-14 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-13 00:00:00+00:00 to 2025-10-14 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-11-03 00:00:00+00:00 to 2025-11-10 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.2s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1681s ago] ('week', '2025-11-03 00:00:00.000000', '2025-11-10 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1674s ago] ('2025-11-03 00:00:00.000000', '2025-11-10 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - INSERT INTO job_statistics (id, period_type, period_start, period_end, agent_name, provider, model, job_count, total_input_tokens, total_output_tokens, total_cost, avg_duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ... 507 characters truncated ... , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING calculated_at, id
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1834s ago (insertmanyvalues) 1/1 (ordered)] ('66397517-08ad-4cb8-8196-24c10dedba5f', 'week', '2025-11-03 00:00:00.000000', '2025-11-10 00:00:00.000000', 'html-to-markdown-converter-job', None, None, 1269, 531407, 0, 0.265703500000006, 1368.4523246650906, '0ca667af-68e4-44ef-b931-57764b3b0b98', 'week', '2025-11-03 00:00:00.000000', '2025-11-10 00:00:00.000000', 'teams-support-analysis-agent-job', None, None, 6, 6915, 0, 0.0172875, 10982.5, '5d3fd6aa-fe92-4aad-a901-093ed2fa63a7', 'week', '2025-11-03 00:00:00.000000', '2025-11-10 00:00:00.000000', 'markdown-to-html-converter-job', None, None, 6, 3773, 0, 0.0018865000000000002, 4692.666666666667, '07431f98-d65f-43ca-b895-aeeb3cb91879', 'week', '2025-11-03 00:00:00.000000', '2025-11-10 00:00:00.000000', 'text-keyword-extractor-de-job', None, None, 5, 3824, 0, 0.001912, 1147.8, '336043f9-439c-42c1-b9bb-c47d34d53a7e', 'week' ... 104 parameters truncated ... 0.27005550000000533, None, 'a277ec0a-ce2e-4925-aa1b-99eb39e6ff57', 'week', '2025-11-03 00:00:00.000000', '2025-11-10 00:00:00.000000', None, None, 'gpt-4o', 8, 7978, 0, 0.019945, None, 'b27ef190-5376-486c-8793-23558a49cac7', 'week', '2025-11-03 00:00:00.000000', '2025-11-10 00:00:00.000000', None, None, 'gemma-3-27b-it', 9, 5582, 0, 0.0, None, '733b6cec-2607-4455-933f-36376b654189', 'week', '2025-11-03 00:00:00.000000', '2025-11-10 00:00:00.000000', None, None, 'gpt-4.1', 3, 11146, 0, 0.022292, None, '69a27f5f-d2cb-414a-8efc-6dd2c2e3f536', 'week', '2025-11-03 00:00:00.000000', '2025-11-10 00:00:00.000000', None, None, 'gpt-4.1-mini', 3, 1655, 0, 0.000662, None)
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Created 17 statistics records for week
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-10-27 00:00:00+00:00 to 2025-11-03 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.23s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1945s ago] ('week', '2025-10-27 00:00:00.000000', '2025-11-03 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1938s ago] ('2025-10-27 00:00:00.000000', '2025-11-03 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-27 00:00:00+00:00 to 2025-11-03 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-10-20 00:00:00+00:00 to 2025-10-27 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.23s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1989s ago] ('week', '2025-10-20 00:00:00.000000', '2025-10-27 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.1983s ago] ('2025-10-20 00:00:00.000000', '2025-10-27 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-20 00:00:00+00:00 to 2025-10-27 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-10-13 00:00:00+00:00 to 2025-10-20 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.23s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2029s ago] ('week', '2025-10-13 00:00:00.000000', '2025-10-20 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2026s ago] ('2025-10-13 00:00:00.000000', '2025-10-20 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-13 00:00:00+00:00 to 2025-10-20 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-10-06 00:00:00+00:00 to 2025-10-13 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.24s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2072s ago] ('week', '2025-10-06 00:00:00.000000', '2025-10-13 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2064s ago] ('2025-10-06 00:00:00.000000', '2025-10-13 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-06 00:00:00+00:00 to 2025-10-13 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-09-29 00:00:00+00:00 to 2025-10-06 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.24s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2105s ago] ('week', '2025-09-29 00:00:00.000000', '2025-10-06 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2097s ago] ('2025-09-29 00:00:00.000000', '2025-10-06 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-09-29 00:00:00+00:00 to 2025-10-06 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-09-22 00:00:00+00:00 to 2025-09-29 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.25s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2144s ago] ('week', '2025-09-22 00:00:00.000000', '2025-09-29 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2139s ago] ('2025-09-22 00:00:00.000000', '2025-09-29 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-09-22 00:00:00+00:00 to 2025-09-29 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-09-15 00:00:00+00:00 to 2025-09-22 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.25s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2182s ago] ('week', '2025-09-15 00:00:00.000000', '2025-09-22 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2175s ago] ('2025-09-15 00:00:00.000000', '2025-09-22 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-09-15 00:00:00+00:00 to 2025-09-22 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-09-08 00:00:00+00:00 to 2025-09-15 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.25s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2215s ago] ('week', '2025-09-08 00:00:00.000000', '2025-09-15 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2207s ago] ('2025-09-08 00:00:00.000000', '2025-09-15 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-09-08 00:00:00+00:00 to 2025-09-15 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-09-01 00:00:00+00:00 to 2025-09-08 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.26s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2247s ago] ('week', '2025-09-01 00:00:00.000000', '2025-09-08 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2238s ago] ('2025-09-01 00:00:00.000000', '2025-09-08 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-09-01 00:00:00+00:00 to 2025-09-08 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-08-25 00:00:00+00:00 to 2025-09-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.26s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2278s ago] ('week', '2025-08-25 00:00:00.000000', '2025-09-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.227s ago] ('2025-08-25 00:00:00.000000', '2025-09-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-08-25 00:00:00+00:00 to 2025-09-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for week from 2025-08-18 00:00:00+00:00 to 2025-08-25 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.26s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2323s ago] ('week', '2025-08-18 00:00:00.000000', '2025-08-25 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2319s ago] ('2025-08-18 00:00:00.000000', '2025-08-25 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-08-18 00:00:00+00:00 to 2025-08-25 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2025-10-01 00:00:00+00:00 to 2025-11-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.27s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2364s ago] ('month', '2025-10-01 00:00:00.000000', '2025-11-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2356s ago] ('2025-10-01 00:00:00.000000', '2025-11-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-10-01 00:00:00+00:00 to 2025-11-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2025-09-01 00:00:00+00:00 to 2025-10-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.27s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2397s ago] ('month', '2025-09-01 00:00:00.000000', '2025-10-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2389s ago] ('2025-09-01 00:00:00.000000', '2025-10-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-09-01 00:00:00+00:00 to 2025-10-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2025-08-01 00:00:00+00:00 to 2025-09-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.27s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2428s ago] ('month', '2025-08-01 00:00:00.000000', '2025-09-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2421s ago] ('2025-08-01 00:00:00.000000', '2025-09-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-08-01 00:00:00+00:00 to 2025-09-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2025-07-01 00:00:00+00:00 to 2025-08-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.28s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2465s ago] ('month', '2025-07-01 00:00:00.000000', '2025-08-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2462s ago] ('2025-07-01 00:00:00.000000', '2025-08-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-07-01 00:00:00+00:00 to 2025-08-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2025-06-01 00:00:00+00:00 to 2025-07-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.28s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2508s ago] ('month', '2025-06-01 00:00:00.000000', '2025-07-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2502s ago] ('2025-06-01 00:00:00.000000', '2025-07-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-06-01 00:00:00+00:00 to 2025-07-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2025-05-01 00:00:00+00:00 to 2025-06-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.29s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2556s ago] ('month', '2025-05-01 00:00:00.000000', '2025-06-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2553s ago] ('2025-05-01 00:00:00.000000', '2025-06-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-05-01 00:00:00+00:00 to 2025-06-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2025-04-01 00:00:00+00:00 to 2025-05-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.29s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2597s ago] ('month', '2025-04-01 00:00:00.000000', '2025-05-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.259s ago] ('2025-04-01 00:00:00.000000', '2025-05-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-04-01 00:00:00+00:00 to 2025-05-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2025-03-01 00:00:00+00:00 to 2025-04-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.29s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.264s ago] ('month', '2025-03-01 00:00:00.000000', '2025-04-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2637s ago] ('2025-03-01 00:00:00.000000', '2025-04-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-03-01 00:00:00+00:00 to 2025-04-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2025-02-01 00:00:00+00:00 to 2025-03-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.3s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2685s ago] ('month', '2025-02-01 00:00:00.000000', '2025-03-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2678s ago] ('2025-02-01 00:00:00.000000', '2025-03-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-02-01 00:00:00+00:00 to 2025-03-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2025-01-01 00:00:00+00:00 to 2025-02-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.3s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2719s ago] ('month', '2025-01-01 00:00:00.000000', '2025-02-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2712s ago] ('2025-01-01 00:00:00.000000', '2025-02-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2025-01-01 00:00:00+00:00 to 2025-02-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2024-12-01 00:00:00+00:00 to 2025-01-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.31s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2753s ago] ('month', '2024-12-01 00:00:00.000000', '2025-01-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2745s ago] ('2024-12-01 00:00:00.000000', '2025-01-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2024-12-01 00:00:00+00:00 to 2025-01-01 00:00:00+00:00
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculating statistics for month from 2024-11-01 00:00:00+00:00 to 2024-12-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 12.31s ago] ()
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - DELETE FROM job_statistics WHERE job_statistics.period_type = ? AND job_statistics.period_start = ? AND job_statistics.period_end = ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2786s ago] ('month', '2024-11-01 00:00:00.000000', '2024-12-01 00:00:00.000000')
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.created_at >= ? AND jobs.created_at < ?
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - [cached since 0.2783s ago] ('2024-11-01 00:00:00.000000', '2024-12-01 00:00:00.000000')
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - No jobs found for period 2024-11-01 00:00:00+00:00 to 2024-12-01 00:00:00+00:00
+2025-11-12 22:32:21 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 22:32:21 - service.job_statistics_service - INFO - Calculated all statistics: {'day': 65, 'week': 17, 'month': 0}
+2025-11-12 22:32:23 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:32:23 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.agent_name AS label, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost, avg(job_statistics.avg_duration) AS avg_duration 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? AND job_statistics.agent_name IS NOT NULL GROUP BY job_statistics.agent_name ORDER BY sum(job_statistics.total_cost) DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:23 - sqlalchemy.engine.Engine - INFO - [cached since 5.144s ago] ('month', 20, 0)
+2025-11-12 22:32:23 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.provider AS label, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost, avg(job_statistics.avg_duration) AS avg_duration 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? AND job_statistics.provider IS NOT NULL GROUP BY job_statistics.provider ORDER BY sum(job_statistics.total_cost) DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:23 - sqlalchemy.engine.Engine - INFO - [cached since 5.142s ago] ('month', 20, 0)
+2025-11-12 22:32:23 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.model AS label, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost, avg(job_statistics.avg_duration) AS avg_duration 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? AND job_statistics.model IS NOT NULL GROUP BY job_statistics.model ORDER BY sum(job_statistics.total_cost) DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:23 - sqlalchemy.engine.Engine - INFO - [cached since 5.141s ago] ('month', 20, 0)
+2025-11-12 22:32:23 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.period_start, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? GROUP BY job_statistics.period_start ORDER BY job_statistics.period_start DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:23 - sqlalchemy.engine.Engine - INFO - [cached since 5.14s ago] ('month', 12, 0)
+2025-11-12 22:32:23 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 22:32:23 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 22:32:24 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.agent_name AS label, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost, avg(job_statistics.avg_duration) AS avg_duration 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? AND job_statistics.agent_name IS NOT NULL GROUP BY job_statistics.agent_name ORDER BY sum(job_statistics.total_cost) DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:24 - sqlalchemy.engine.Engine - INFO - [cached since 6.018s ago] ('day', 20, 0)
+2025-11-12 22:32:24 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.provider AS label, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost, avg(job_statistics.avg_duration) AS avg_duration 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? AND job_statistics.provider IS NOT NULL GROUP BY job_statistics.provider ORDER BY sum(job_statistics.total_cost) DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:24 - sqlalchemy.engine.Engine - INFO - [cached since 6.016s ago] ('day', 20, 0)
+2025-11-12 22:32:24 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.model AS label, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost, avg(job_statistics.avg_duration) AS avg_duration 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? AND job_statistics.model IS NOT NULL GROUP BY job_statistics.model ORDER BY sum(job_statistics.total_cost) DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:24 - sqlalchemy.engine.Engine - INFO - [cached since 6.015s ago] ('day', 20, 0)
+2025-11-12 22:32:24 - sqlalchemy.engine.Engine - INFO - SELECT job_statistics.period_start, sum(job_statistics.job_count) AS job_count, sum(job_statistics.total_input_tokens) AS total_input_tokens, sum(job_statistics.total_output_tokens) AS total_output_tokens, sum(job_statistics.total_cost) AS total_cost 
+FROM job_statistics 
+WHERE job_statistics.period_type = ? GROUP BY job_statistics.period_start ORDER BY job_statistics.period_start DESC
+ LIMIT ? OFFSET ?
+2025-11-12 22:32:24 - sqlalchemy.engine.Engine - INFO - [cached since 6.015s ago] ('day', 12, 0)
+2025-11-12 22:32:24 - sqlalchemy.engine.Engine - INFO - COMMIT

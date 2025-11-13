@@ -1,10 +1,10 @@
 description: Ein Agent, der auf die Bewertung von Prüfungen anhand vordefinierter
   Regeln und Richtlinien spezialisiert ist und objektives und umfassendes Feedback
   gibt.
-model: gpt-4
+model: gpt-4o
 name: exam-grading-agent
 parameters: null
-provider: openai
+provider: OpenAI
 role: Du bist Dozent an einer deutschen Hochschule und korrigierst eine Studienarbeit
   eines Studierenden.
 task: "Die Aufgabe des Prüfers besteht darin, die eingereichten Prüfungsleistungen\

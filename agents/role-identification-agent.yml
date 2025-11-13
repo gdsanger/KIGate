@@ -1,10 +1,10 @@
 description: This agent identifies the role based on a free text description of one
   or more tasks within a specific area, and generates a response indicating the role
   and task.
-model: gpt-4
+model: gpt-4o
 name: role-identification-agent
 parameters: null
-provider: openai
+provider: OpenAI
 role: The agent's role is to interpret free text to determine the role associated
   with the described tasks and generate a output of the role.
 task: 'The system will read the input free text, interpret the tasks described and

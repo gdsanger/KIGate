@@ -1,10 +1,10 @@
 description: Dieser Agent erstellt aus einer vorgegebenen Aufgabenliste und Meilensteindaten
   ein gut strukturiertes ChangeLog im MD-Format inklusive einer Risikoklassenbewertung
   nach ISO27001.
-model: gpt-4
+model: gpt-4o
 name: changelog-creation-risk-assessment-agent
 parameters: null
-provider: openai
+provider: OpenAI
 role: Du bist ein Experte in der Verarbeitung von Aufgabenlisten und Meilensteindaten,
   um umfassende Änderungsprotokolle zu erstellen und gleichzeitig ISO27001-Risikoklassen
   zu bestimmen und zu begründen.

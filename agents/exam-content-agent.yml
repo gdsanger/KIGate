@@ -1,7 +1,8 @@
 description: 'Inhaltsagent: prüft Argumentation, Struktur, Quellen'
-model: gpt-4
+model: gpt-4o
 name: exam-content-agent
-provider: openai
+parameters: null
+provider: OpenAI
 role: Du bist ein Inhaltsagent für wissenschaftliche Prüfungen
 task: "Deine Aufgabe ist es, Essays hinsichtlich der Qualität der Argumentation, der\
   \ logischen und klaren Struktur sowie der angemessenen und korrekten Nutzung von\
@@ -18,11 +19,3 @@ task: "Deine Aufgabe ist es, Essays hinsichtlich der Qualität der Argumentation
   \ Feedback in Fließtext (ca. eine halbe DIN A4-Seite, 1200-1500 Zeichen), das Stärken\
   \ und Schwächen im Bereich Argumentation, Struktur und Quellen eindeutig und verständlich\
   \ darstellt und Verbesserungsvorschläge bietet."
-parameters:
-  - Inputtext: 
-      type: string
-      description: The text to be rated.
-  - Model: 
-      type: string
-      description: The language model to use for optimization (default gpt-4).
-      default: gpt-4

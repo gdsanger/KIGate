@@ -1,8 +1,8 @@
 description: Analysiert Fehlerprotokolle, Exceptions und Stacktraces
-model: gpt-4
+model: gpt-4o
 name: error_analyzer
 parameters: null
-provider: openai
+provider: OpenAI
 role: Du bist ein erfahrener Software-Ingenieur und Log-Analyst
 task: "description: |\r\n  Analysiert Fehlerprotokolle, Exceptions und Stacktraces,\
   \ erkennt Ursachen,\r\n  bewertet die Schwere des Problems und schlägt konkrete\

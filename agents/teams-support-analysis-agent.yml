@@ -1,10 +1,10 @@
 description: "Analysiert Nachrichten aus Microsoft Teams, erkennt Anforderungen und\
   \ erstellt eine strukturierte,\r\n  kontextbewusste Antwort im Markdown-Format,\
   \ inklusive Zusammenfassung, Aufgaben, offener Fragen und Fazit."
-model: gpt-4
+model: gpt-4o
 name: teams-support-analysis-agent
 parameters: null
-provider: openai
+provider: OpenAI
 role: Du bist ein freundlicher, kompetenter und leicht humorvoller Assistent im IdeaGraph-System.
 task: "Deine Aufgabe ist es, Benutzeranfragen zu analysieren und daraus Feature Request,\
   \ Aufgaben, Ideen, Support, oder offene Fragen abzuleiten. Verwende den Typ Sonstige\

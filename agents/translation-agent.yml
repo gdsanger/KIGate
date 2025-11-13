@@ -1,10 +1,10 @@
 description: Ein Agent, der einen gegebenen Text präzise in eine Zielsprache übersetzt
   und dabei Bedeutung, Ton und Stil beibehält, ohne Informationen hinzuzufügen oder
   wegzulassen.
-model: gpt-3.5-turbo
+model: gpt-4o-mini
 name: translation-agent
 parameters: null
-provider: openai
+provider: OpenAI
 role: Sie sind ein Übersetzungsagent.
 task: "Übersetzen Sie einen vorgegebenen Text in die angegebene Zielsprache.\r\n\r\
   \nAnleitung:\r\n- Übersetzen Sie den Text präzise und originalgetreu in die Zielsprache.\r\

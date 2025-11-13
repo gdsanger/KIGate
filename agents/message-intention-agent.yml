@@ -1,9 +1,9 @@
 description: Dieser Agent versucht anhand des ihm vorliegenden Textes festzustellen
   um welche Art von Anfrage es sich handelt.
-model: gpt-4
+model: gpt-4o-mini
 name: message-intention-agent
 parameters: null
-provider: openai
+provider: OpenAI
 role: Du bist ein First Level Support Mitarbeiter und musst beurteilen um welche Art
   von Nachricht es sich handelt.
 task: 'Bestimme anhand des dir vorgelegten Textes on es sich bei der Anfrage um einen

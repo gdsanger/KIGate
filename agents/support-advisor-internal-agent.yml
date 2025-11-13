@@ -1,9 +1,9 @@
 description: Führt interne Suche zur Problemstellung durch und liefert eine zusammengefasste
   Antwort mit Handlungsempfehlungen und Quellenangaben.
-model: gpt-4
+model: gpt-4o
 name: support-advisor-internal-agent
 parameters: null
-provider: openai
+provider: OpenAI
 role: Du bist ein technischer Support-Analyst für das System IdeaGraph.
 task: "Analysiere den folgenden Tasktext und die semantisch ähnlichen Objekte aus\
   \ der Wissensdatenbank (Items, Tasks, Issues, Files, Milestones).\\n\\nZiele:\\\

@@ -1,0 +1,111 @@
+2025-11-12 08:30:49 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 08:30:49 - sqlalchemy.engine.Engine - INFO - SELECT github_issue_records.id, github_issue_records.repository, github_issue_records.original_text, github_issue_records.processed_text, github_issue_records.issue_title, github_issue_records.issue_number, github_issue_records.issue_url, github_issue_records.success, github_issue_records.error_message, github_issue_records.created_by, github_issue_records.created_at 
+FROM github_issue_records ORDER BY github_issue_records.created_at DESC
+ LIMIT ? OFFSET ?
+2025-11-12 08:30:49 - sqlalchemy.engine.Engine - INFO - [generated in 0.00459s] (20, 0)
+2025-11-12 08:30:49 - sqlalchemy.engine.Engine - INFO - SELECT count(github_issue_records.id) AS count_1 
+FROM github_issue_records
+2025-11-12 08:30:49 - sqlalchemy.engine.Engine - INFO - [generated in 0.00102s] ()
+2025-11-12 08:30:49 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 08:30:49 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 08:30:49 - sqlalchemy.engine.Engine - INFO - SELECT repositories.id, repositories.full_name, repositories.owner, repositories.name, repositories.description, repositories.html_url, repositories.is_private, repositories.is_active, repositories.last_updated, repositories.created_at 
+FROM repositories 
+WHERE repositories.is_active = 1 ORDER BY repositories.full_name
+2025-11-12 08:30:49 - sqlalchemy.engine.Engine - INFO - [generated in 0.00072s] ()
+2025-11-12 08:30:49 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - SELECT count(jobs.id) AS count_1 
+FROM jobs
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - [cached since 4.526e+04s ago] ()
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count, users_1.name AS user_name 
+FROM jobs LEFT OUTER JOIN users AS users_1 ON jobs.user_id = users_1.client_id ORDER BY jobs.created_at DESC
+ LIMIT ? OFFSET ?
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - [cached since 4.526e+04s ago] (25, 0)
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - SELECT DISTINCT jobs.status 
+FROM jobs ORDER BY jobs.status
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - [cached since 4.526e+04s ago] ()
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - SELECT DISTINCT jobs.provider 
+FROM jobs ORDER BY jobs.provider
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - [cached since 4.526e+04s ago] ()
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.input_price_per_million, provider_models.output_price_per_million, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.input_price_per_million IS NOT NULL AND provider_models.output_price_per_million IS NOT NULL
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - [cached since 4.526e+04s ago] ()
+2025-11-12 08:31:04 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 09:40:22 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 09:40:22 - sqlalchemy.engine.Engine - INFO - SELECT users.client_id, users.client_secret, users.name, users.email, users.role, users.is_active, users.created_at, users.last_login, users.rpm_limit, users.tpm_limit, users.current_rpm, users.current_tpm, users.last_reset_time 
+FROM users 
+WHERE users.client_id = ? AND users.is_active = 1
+2025-11-12 09:40:22 - sqlalchemy.engine.Engine - INFO - [generated in 0.00290s] ('d21db873-2dfc-44af-b8ec-50b71fff6460',)
+2025-11-12 09:40:22 - sqlalchemy.engine.Engine - INFO - UPDATE users SET last_login=? WHERE users.client_id = ?
+2025-11-12 09:40:22 - sqlalchemy.engine.Engine - INFO - [generated in 0.00104s] ('2025-11-12 08:40:22.446513', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-12 09:40:22 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=?, last_reset_time=? WHERE users.client_id = ?
+2025-11-12 09:40:22 - sqlalchemy.engine.Engine - INFO - [generated in 0.00062s] (1, 0, '2025-11-12 08:40:22.463043', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-12 09:40:22 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - INSERT INTO jobs (id, name, user_id, provider, model, status, duration, client_ip, token_count, output_token_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - [generated in 0.00074s] ('919cd71e-0314-4576-ab40-4549129fe084', 'text-keyword-extractor-de-job', '17bb441e-3cb0-4419-a047-a9ad2b3a5802', 'OpenAI', 'gpt-4o-mini', 'created', None, '172.18.248.192', 2233, None)
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - [generated in 0.00070s] ('919cd71e-0314-4576-ab40-4549129fe084',)
+2025-11-12 09:40:23 - service.job_service - INFO - Created job 919cd71e-0314-4576-ab40-4549129fe084 for user 17bb441e-3cb0-4419-a047-a9ad2b3a5802
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - [generated in 0.00069s] ('919cd71e-0314-4576-ab40-4549129fe084',)
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - [generated in 0.00045s] ('processing', '919cd71e-0314-4576-ab40-4549129fe084')
+2025-11-12 09:40:23 - service.job_service - INFO - Updated job 919cd71e-0314-4576-ab40-4549129fe084 status to processing
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 09:40:23 - service.ai_service - INFO - Normalized provider 'OpenAI' to 'openai'
+2025-11-12 09:40:23 - service.ai_service - INFO - Routing AI request to provider: openai
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.provider_type = ? AND providers.is_active = 1
+2025-11-12 09:40:23 - sqlalchemy.engine.Engine - INFO - [generated in 0.00066s] ('openai',)
+2025-11-12 09:40:23 - service.ai_service - INFO - Using provider configuration from database for 'openai' (ID: 7b2d5f2f-eea9-4468-ba14-9a595f1dd39e)
+2025-11-12 09:40:23 - controller.api_openai - INFO - OpenAI Controller initialized
+2025-11-12 09:40:23 - controller.api_openai - INFO - Processing OpenAI request for job_id: 919cd71e-0314-4576-ab40-4549129fe084, user_id: 17bb441e-3cb0-4419-a047-a9ad2b3a5802
+2025-11-12 09:40:53 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-12 09:40:24 - controller.api_openai - INFO - Successfully received response for job_id: 919cd71e-0314-4576-ab40-4549129fe084
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - [cached since 2.154s ago] ('919cd71e-0314-4576-ab40-4549129fe084',)
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET token_count=? WHERE jobs.id = ?
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - [generated in 0.00081s] (2240, '919cd71e-0314-4576-ab40-4549129fe084')
+2025-11-12 09:40:24 - service.job_service - INFO - Updated job 919cd71e-0314-4576-ab40-4549129fe084 token count to 2240
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - [cached since 2.162s ago] ('919cd71e-0314-4576-ab40-4549129fe084',)
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET output_token_count=? WHERE jobs.id = ?
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - [generated in 0.00056s] (12, '919cd71e-0314-4576-ab40-4549129fe084')
+2025-11-12 09:40:24 - service.job_service - INFO - Updated job 919cd71e-0314-4576-ab40-4549129fe084 output token count to 12
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - [cached since 2.167s ago] ('919cd71e-0314-4576-ab40-4549129fe084',)
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - [cached since 2.166s ago] ('completed', '919cd71e-0314-4576-ab40-4549129fe084')
+2025-11-12 09:40:24 - service.job_service - INFO - Updated job 919cd71e-0314-4576-ab40-4549129fe084 status to completed
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count, jobs.output_token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - [cached since 2.172s ago] ('919cd71e-0314-4576-ab40-4549129fe084',)
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET duration=? WHERE jobs.id = ?
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - [generated in 0.00144s] (1666, '919cd71e-0314-4576-ab40-4549129fe084')
+2025-11-12 09:40:24 - service.job_service - INFO - Updated job 919cd71e-0314-4576-ab40-4549129fe084 duration to 1666ms
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=? WHERE users.client_id = ?
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - [generated in 0.00094s] (2, 2252, 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-12 09:40:24 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-12 11:34:15 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-12 11:34:16 - sqlalchemy.engine.Engine - INFO - SELECT users.client_id, users.client_secret, users.name, users.email, users.role, users.is_active, users.created_at, users.last_login, users.rpm_limit, users.tpm_limit, users.current_rpm, users.current_tpm, users.last_reset_time 
+FROM users ORDER BY users.created_at DESC
+ LIMIT ? OFFSET ?
+2025-11-12 11:34:16 - sqlalchemy.engine.Engine - INFO - [generated in 0.00484s] (100, 0)
+2025-11-12 11:34:16 - sqlalchemy.engine.Engine - INFO - COMMIT

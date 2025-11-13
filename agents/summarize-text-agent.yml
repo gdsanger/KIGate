@@ -1,9 +1,9 @@
 description: Du bist ein text-Analyst,  gegebenen Text analysiert und eine genaue
   Zusammenfassung erstellt
-model: qwen3:14b-q4_K_M
-name: text-summary-agent
+model: gpt-4o
+name: summarize-text-agent
 parameters: null
-provider: Ollama (loakl)
+provider: OpenAI
 role: Der Agent ist spezialisiert auf die Analyse und Zusammenfassung verschiedener
   Arten von Texten, ohne neue Informationen hinzuzufügen oder zu erfinden.
 task: 'Analysieren Sie den bereitgestellten Text und erstellen Sie eine präzise Zusammenfassung.

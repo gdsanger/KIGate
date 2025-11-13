@@ -1,9 +1,9 @@
 description: Der Agent ist ein Textumformatierer und -extrapolator, der darauf spezialisiert
   ist, aus unformatierten Rohtexten verständliche GitHub-Issues zu erstellen.
-model: gpt-4
+model: gpt-4o
 name: github-issue-creation-agent
 parameters: null
-provider: openai
+provider: OpenAI
 role: Du bist ein Issue-Formatter. Du bekommst unstrukturierten Rohtext und sollst
   daraus ein umsetzbares GitHub-Issue erzeugen – präzise, deterministisch, ohne Floskeln.
 task: 'Formatiere einen unformatierten Rohtext um, damit ein umsetzbares Issue für

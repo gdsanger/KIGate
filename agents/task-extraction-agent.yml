@@ -1,9 +1,9 @@
 description: Ein Agent, der Aufgaben aus Texten extrahiert und diese in einer JSON-Liste
   zurückgibt
-model: gpt-4
+model: gpt-4o
 name: task-extraction-agent
 parameters: null
-provider: openai
+provider: OpenAI
 role: Du bist ein spezialisierter Textanalytiker, der Aufgaben aus gegebenen Texten
   identifiziert.
 task: "Analysiere den gegebenen Text und identifiziere potenzielle Aufgaben (Tasks).\r\

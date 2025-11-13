@@ -1,0 +1,549 @@
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - SELECT users.client_id, users.client_secret, users.name, users.email, users.role, users.is_active, users.created_at, users.last_login, users.rpm_limit, users.tpm_limit, users.current_rpm, users.current_tpm, users.last_reset_time 
+FROM users 
+WHERE users.client_id = ? AND users.is_active = 1
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('d21db873-2dfc-44af-b8ec-50b71fff6460',)
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - UPDATE users SET last_login=? WHERE users.client_id = ?
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('2025-11-11 06:10:02.097729', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=?, last_reset_time=? WHERE users.client_id = ?
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.074e+06s ago] (1, 0, '2025-11-11 06:10:02.106422', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - INSERT INTO jobs (id, name, user_id, provider, model, status, duration, client_ip, token_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('d0a6de33-a838-4f6b-b7c1-cc2e0f3d787b', 'html-to-markdown-converter-job', 'system', 'OpenAI', 'gpt-3.5-turbo', 'created', None, '172.18.248.192', 460)
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('d0a6de33-a838-4f6b-b7c1-cc2e0f3d787b',)
+2025-11-11 07:10:02 - service.job_service - INFO - Created job d0a6de33-a838-4f6b-b7c1-cc2e0f3d787b for user system
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('d0a6de33-a838-4f6b-b7c1-cc2e0f3d787b',)
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('processing', 'd0a6de33-a838-4f6b-b7c1-cc2e0f3d787b')
+2025-11-11 07:10:02 - service.job_service - INFO - Updated job d0a6de33-a838-4f6b-b7c1-cc2e0f3d787b status to processing
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:10:02 - service.ai_service - INFO - Normalized provider 'OpenAI' to 'openai'
+2025-11-11 07:10:02 - service.ai_service - INFO - Routing AI request to provider: openai
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.provider_type = ? AND providers.is_active = 1
+2025-11-11 07:10:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('openai',)
+2025-11-11 07:10:02 - service.ai_service - INFO - Using provider configuration from database for 'openai' (ID: 7b2d5f2f-eea9-4468-ba14-9a595f1dd39e)
+2025-11-11 07:10:02 - controller.api_openai - INFO - OpenAI Controller initialized
+2025-11-11 07:10:02 - controller.api_openai - INFO - Processing OpenAI request for job_id: d0a6de33-a838-4f6b-b7c1-cc2e0f3d787b, user_id: system
+2025-11-11 07:10:06 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-11 07:10:06 - controller.api_openai - INFO - Successfully received response for job_id: d0a6de33-a838-4f6b-b7c1-cc2e0f3d787b
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('d0a6de33-a838-4f6b-b7c1-cc2e0f3d787b',)
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('completed', 'd0a6de33-a838-4f6b-b7c1-cc2e0f3d787b')
+2025-11-11 07:10:06 - service.job_service - INFO - Updated job d0a6de33-a838-4f6b-b7c1-cc2e0f3d787b status to completed
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('d0a6de33-a838-4f6b-b7c1-cc2e0f3d787b',)
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET duration=? WHERE jobs.id = ?
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] (4627, 'd0a6de33-a838-4f6b-b7c1-cc2e0f3d787b')
+2025-11-11 07:10:06 - service.job_service - INFO - Updated job d0a6de33-a838-4f6b-b7c1-cc2e0f3d787b duration to 4627ms
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=? WHERE users.client_id = ?
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - [cached since 1.091e+06s ago] (2, 574, 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:10:06 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - SELECT users.client_id, users.client_secret, users.name, users.email, users.role, users.is_active, users.created_at, users.last_login, users.rpm_limit, users.tpm_limit, users.current_rpm, users.current_tpm, users.last_reset_time 
+FROM users 
+WHERE users.client_id = ? AND users.is_active = 1
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('d21db873-2dfc-44af-b8ec-50b71fff6460',)
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - UPDATE users SET last_login=? WHERE users.client_id = ?
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('2025-11-11 06:10:24.620879', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=? WHERE users.client_id = ?
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] (7, 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - INSERT INTO jobs (id, name, user_id, provider, model, status, duration, client_ip, token_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('7f3bf16c-a2cc-422b-a69a-4c1d547d7f95', 'html-to-markdown-converter-job', 'system', 'OpenAI', 'gpt-3.5-turbo', 'created', None, '172.18.248.192', 516)
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('7f3bf16c-a2cc-422b-a69a-4c1d547d7f95',)
+2025-11-11 07:10:24 - service.job_service - INFO - Created job 7f3bf16c-a2cc-422b-a69a-4c1d547d7f95 for user system
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('7f3bf16c-a2cc-422b-a69a-4c1d547d7f95',)
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('processing', '7f3bf16c-a2cc-422b-a69a-4c1d547d7f95')
+2025-11-11 07:10:24 - service.job_service - INFO - Updated job 7f3bf16c-a2cc-422b-a69a-4c1d547d7f95 status to processing
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:10:24 - service.ai_service - INFO - Normalized provider 'OpenAI' to 'openai'
+2025-11-11 07:10:24 - service.ai_service - INFO - Routing AI request to provider: openai
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.provider_type = ? AND providers.is_active = 1
+2025-11-11 07:10:24 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('openai',)
+2025-11-11 07:10:24 - service.ai_service - INFO - Using provider configuration from database for 'openai' (ID: 7b2d5f2f-eea9-4468-ba14-9a595f1dd39e)
+2025-11-11 07:10:24 - controller.api_openai - INFO - OpenAI Controller initialized
+2025-11-11 07:10:24 - controller.api_openai - INFO - Processing OpenAI request for job_id: 7f3bf16c-a2cc-422b-a69a-4c1d547d7f95, user_id: system
+2025-11-11 07:10:26 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-11 07:10:26 - controller.api_openai - INFO - Successfully received response for job_id: 7f3bf16c-a2cc-422b-a69a-4c1d547d7f95
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('7f3bf16c-a2cc-422b-a69a-4c1d547d7f95',)
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('completed', '7f3bf16c-a2cc-422b-a69a-4c1d547d7f95')
+2025-11-11 07:10:26 - service.job_service - INFO - Updated job 7f3bf16c-a2cc-422b-a69a-4c1d547d7f95 status to completed
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] ('7f3bf16c-a2cc-422b-a69a-4c1d547d7f95',)
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET duration=? WHERE jobs.id = ?
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - [cached since 1.107e+06s ago] (1560, '7f3bf16c-a2cc-422b-a69a-4c1d547d7f95')
+2025-11-11 07:10:26 - service.job_service - INFO - Updated job 7f3bf16c-a2cc-422b-a69a-4c1d547d7f95 duration to 1560ms
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=? WHERE users.client_id = ?
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - [cached since 1.091e+06s ago] (8, 3855, 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:10:26 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - SELECT users.client_id, users.client_secret, users.name, users.email, users.role, users.is_active, users.created_at, users.last_login, users.rpm_limit, users.tpm_limit, users.current_rpm, users.current_tpm, users.last_reset_time 
+FROM users 
+WHERE users.client_id = ? AND users.is_active = 1
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('d21db873-2dfc-44af-b8ec-50b71fff6460',)
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - UPDATE users SET last_login=? WHERE users.client_id = ?
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('2025-11-11 06:35:22.231490', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=? WHERE users.client_id = ?
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] (7, 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - INSERT INTO jobs (id, name, user_id, provider, model, status, duration, client_ip, token_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d', 'html-to-markdown-converter-job', 'system', 'OpenAI', 'gpt-3.5-turbo', 'created', None, '172.18.248.192', 6511)
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d',)
+2025-11-11 07:35:22 - service.job_service - INFO - Created job 6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d for user system
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d',)
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('processing', '6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d')
+2025-11-11 07:35:22 - service.job_service - INFO - Updated job 6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d status to processing
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:35:22 - service.ai_service - INFO - Normalized provider 'OpenAI' to 'openai'
+2025-11-11 07:35:22 - service.ai_service - INFO - Routing AI request to provider: openai
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.provider_type = ? AND providers.is_active = 1
+2025-11-11 07:35:22 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('openai',)
+2025-11-11 07:35:22 - service.ai_service - INFO - Using provider configuration from database for 'openai' (ID: 7b2d5f2f-eea9-4468-ba14-9a595f1dd39e)
+2025-11-11 07:35:22 - controller.api_openai - INFO - OpenAI Controller initialized
+2025-11-11 07:35:22 - controller.api_openai - INFO - Processing OpenAI request for job_id: 6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d, user_id: system
+2025-11-11 07:35:32 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-11 07:35:32 - controller.api_openai - INFO - Successfully received response for job_id: 6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d',)
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('completed', '6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d')
+2025-11-11 07:35:32 - service.job_service - INFO - Updated job 6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d status to completed
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d',)
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET duration=? WHERE jobs.id = ?
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] (10289, '6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d')
+2025-11-11 07:35:32 - service.job_service - INFO - Updated job 6a49d9d8-21ab-40b5-9ad6-ea7a513ffb2d duration to 10289ms
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=? WHERE users.client_id = ?
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - [cached since 1.093e+06s ago] (8, 11568, 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:35:32 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - SELECT users.client_id, users.client_secret, users.name, users.email, users.role, users.is_active, users.created_at, users.last_login, users.rpm_limit, users.tpm_limit, users.current_rpm, users.current_tpm, users.last_reset_time 
+FROM users 
+WHERE users.client_id = ? AND users.is_active = 1
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('d21db873-2dfc-44af-b8ec-50b71fff6460',)
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - UPDATE users SET last_login=? WHERE users.client_id = ?
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('2025-11-11 06:40:02.487347', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=?, last_reset_time=? WHERE users.client_id = ?
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.076e+06s ago] (1, 0, '2025-11-11 06:40:02.490595', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - INSERT INTO jobs (id, name, user_id, provider, model, status, duration, client_ip, token_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('1fe14746-6a57-4a73-8246-6db4d774d141', 'html-to-markdown-converter-job', 'system', 'OpenAI', 'gpt-3.5-turbo', 'created', None, '172.18.248.192', 862)
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('1fe14746-6a57-4a73-8246-6db4d774d141',)
+2025-11-11 07:40:02 - service.job_service - INFO - Created job 1fe14746-6a57-4a73-8246-6db4d774d141 for user system
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('1fe14746-6a57-4a73-8246-6db4d774d141',)
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('processing', '1fe14746-6a57-4a73-8246-6db4d774d141')
+2025-11-11 07:40:02 - service.job_service - INFO - Updated job 1fe14746-6a57-4a73-8246-6db4d774d141 status to processing
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:40:02 - service.ai_service - INFO - Normalized provider 'OpenAI' to 'openai'
+2025-11-11 07:40:02 - service.ai_service - INFO - Routing AI request to provider: openai
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.provider_type = ? AND providers.is_active = 1
+2025-11-11 07:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('openai',)
+2025-11-11 07:40:02 - service.ai_service - INFO - Using provider configuration from database for 'openai' (ID: 7b2d5f2f-eea9-4468-ba14-9a595f1dd39e)
+2025-11-11 07:40:02 - controller.api_openai - INFO - OpenAI Controller initialized
+2025-11-11 07:40:02 - controller.api_openai - INFO - Processing OpenAI request for job_id: 1fe14746-6a57-4a73-8246-6db4d774d141, user_id: system
+2025-11-11 07:40:04 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-11 07:40:04 - controller.api_openai - INFO - Successfully received response for job_id: 1fe14746-6a57-4a73-8246-6db4d774d141
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('1fe14746-6a57-4a73-8246-6db4d774d141',)
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('completed', '1fe14746-6a57-4a73-8246-6db4d774d141')
+2025-11-11 07:40:04 - service.job_service - INFO - Updated job 1fe14746-6a57-4a73-8246-6db4d774d141 status to completed
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] ('1fe14746-6a57-4a73-8246-6db4d774d141',)
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET duration=? WHERE jobs.id = ?
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - [cached since 1.109e+06s ago] (2177, '1fe14746-6a57-4a73-8246-6db4d774d141')
+2025-11-11 07:40:04 - service.job_service - INFO - Updated job 1fe14746-6a57-4a73-8246-6db4d774d141 duration to 2177ms
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=? WHERE users.client_id = ?
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - [cached since 1.093e+06s ago] (2, 1056, 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 07:40:04 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - SELECT users.client_id, users.client_secret, users.name, users.email, users.role, users.is_active, users.created_at, users.last_login, users.rpm_limit, users.tpm_limit, users.current_rpm, users.current_tpm, users.last_reset_time 
+FROM users 
+WHERE users.client_id = ? AND users.is_active = 1
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - [cached since 1.11e+06s ago] ('d21db873-2dfc-44af-b8ec-50b71fff6460',)
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - UPDATE users SET last_login=? WHERE users.client_id = ?
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - [cached since 1.11e+06s ago] ('2025-11-11 07:00:03.087283', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=?, last_reset_time=? WHERE users.client_id = ?
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - [cached since 1.077e+06s ago] (1, 0, '2025-11-11 07:00:03.089418', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - INSERT INTO jobs (id, name, user_id, provider, model, status, duration, client_ip, token_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - [cached since 1.11e+06s ago] ('7aa37832-3fae-4a35-86a4-64d004bfb2b4', 'html-to-markdown-converter-job', 'system', 'OpenAI', 'gpt-3.5-turbo', 'created', None, '172.18.248.192', 862)
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - [cached since 1.11e+06s ago] ('7aa37832-3fae-4a35-86a4-64d004bfb2b4',)
+2025-11-11 08:00:03 - service.job_service - INFO - Created job 7aa37832-3fae-4a35-86a4-64d004bfb2b4 for user system
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - [cached since 1.11e+06s ago] ('7aa37832-3fae-4a35-86a4-64d004bfb2b4',)
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - [cached since 1.11e+06s ago] ('processing', '7aa37832-3fae-4a35-86a4-64d004bfb2b4')
+2025-11-11 08:00:03 - service.job_service - INFO - Updated job 7aa37832-3fae-4a35-86a4-64d004bfb2b4 status to processing
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:00:03 - service.ai_service - INFO - Normalized provider 'OpenAI' to 'openai'
+2025-11-11 08:00:03 - service.ai_service - INFO - Routing AI request to provider: openai
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.provider_type = ? AND providers.is_active = 1
+2025-11-11 08:00:03 - sqlalchemy.engine.Engine - INFO - [cached since 1.11e+06s ago] ('openai',)
+2025-11-11 08:00:03 - service.ai_service - INFO - Using provider configuration from database for 'openai' (ID: 7b2d5f2f-eea9-4468-ba14-9a595f1dd39e)
+2025-11-11 08:00:03 - controller.api_openai - INFO - OpenAI Controller initialized
+2025-11-11 08:00:03 - controller.api_openai - INFO - Processing OpenAI request for job_id: 7aa37832-3fae-4a35-86a4-64d004bfb2b4, user_id: system
+2025-11-11 08:00:05 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-11 08:00:05 - controller.api_openai - INFO - Successfully received response for job_id: 7aa37832-3fae-4a35-86a4-64d004bfb2b4
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - [cached since 1.11e+06s ago] ('7aa37832-3fae-4a35-86a4-64d004bfb2b4',)
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - [cached since 1.11e+06s ago] ('completed', '7aa37832-3fae-4a35-86a4-64d004bfb2b4')
+2025-11-11 08:00:05 - service.job_service - INFO - Updated job 7aa37832-3fae-4a35-86a4-64d004bfb2b4 status to completed
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - [cached since 1.11e+06s ago] ('7aa37832-3fae-4a35-86a4-64d004bfb2b4',)
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET duration=? WHERE jobs.id = ?
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - [cached since 1.11e+06s ago] (2007, '7aa37832-3fae-4a35-86a4-64d004bfb2b4')
+2025-11-11 08:00:05 - service.job_service - INFO - Updated job 7aa37832-3fae-4a35-86a4-64d004bfb2b4 duration to 2007ms
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=? WHERE users.client_id = ?
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - [cached since 1.094e+06s ago] (2, 1056, 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 08:00:05 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - SELECT users.client_id, users.client_secret, users.name, users.email, users.role, users.is_active, users.created_at, users.last_login, users.rpm_limit, users.tpm_limit, users.current_rpm, users.current_tpm, users.last_reset_time 
+FROM users 
+WHERE users.client_id = ? AND users.is_active = 1
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.113e+06s ago] ('d21db873-2dfc-44af-b8ec-50b71fff6460',)
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - UPDATE users SET last_login=? WHERE users.client_id = ?
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.113e+06s ago] ('2025-11-11 07:40:02.401490', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=?, last_reset_time=? WHERE users.client_id = ?
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.08e+06s ago] (1, 0, '2025-11-11 07:40:02.404407', 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - INSERT INTO jobs (id, name, user_id, provider, model, status, duration, client_ip, token_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING created_at
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.113e+06s ago] ('bf68fbfd-8d1d-40b1-aab9-19078ca05ccd', 'html-to-markdown-converter-job', 'system', 'OpenAI', 'gpt-3.5-turbo', 'created', None, '172.18.248.192', 862)
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.113e+06s ago] ('bf68fbfd-8d1d-40b1-aab9-19078ca05ccd',)
+2025-11-11 08:40:02 - service.job_service - INFO - Created job bf68fbfd-8d1d-40b1-aab9-19078ca05ccd for user system
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.113e+06s ago] ('bf68fbfd-8d1d-40b1-aab9-19078ca05ccd',)
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.113e+06s ago] ('processing', 'bf68fbfd-8d1d-40b1-aab9-19078ca05ccd')
+2025-11-11 08:40:02 - service.job_service - INFO - Updated job bf68fbfd-8d1d-40b1-aab9-19078ca05ccd status to processing
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:40:02 - service.ai_service - INFO - Normalized provider 'OpenAI' to 'openai'
+2025-11-11 08:40:02 - service.ai_service - INFO - Routing AI request to provider: openai
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.provider_type = ? AND providers.is_active = 1
+2025-11-11 08:40:02 - sqlalchemy.engine.Engine - INFO - [cached since 1.113e+06s ago] ('openai',)
+2025-11-11 08:40:02 - service.ai_service - INFO - Using provider configuration from database for 'openai' (ID: 7b2d5f2f-eea9-4468-ba14-9a595f1dd39e)
+2025-11-11 08:40:02 - controller.api_openai - INFO - OpenAI Controller initialized
+2025-11-11 08:40:02 - controller.api_openai - INFO - Processing OpenAI request for job_id: bf68fbfd-8d1d-40b1-aab9-19078ca05ccd, user_id: system
+2025-11-11 08:40:05 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-11 08:40:05 - controller.api_openai - INFO - Successfully received response for job_id: bf68fbfd-8d1d-40b1-aab9-19078ca05ccd
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - [cached since 1.113e+06s ago] ('bf68fbfd-8d1d-40b1-aab9-19078ca05ccd',)
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET status=? WHERE jobs.id = ?
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - [cached since 1.113e+06s ago] ('completed', 'bf68fbfd-8d1d-40b1-aab9-19078ca05ccd')
+2025-11-11 08:40:05 - service.job_service - INFO - Updated job bf68fbfd-8d1d-40b1-aab9-19078ca05ccd status to completed
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - SELECT jobs.id, jobs.name, jobs.user_id, jobs.provider, jobs.model, jobs.status, jobs.created_at, jobs.duration, jobs.client_ip, jobs.token_count 
+FROM jobs 
+WHERE jobs.id = ?
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - [cached since 1.113e+06s ago] ('bf68fbfd-8d1d-40b1-aab9-19078ca05ccd',)
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - UPDATE jobs SET duration=? WHERE jobs.id = ?
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - [cached since 1.113e+06s ago] (2868, 'bf68fbfd-8d1d-40b1-aab9-19078ca05ccd')
+2025-11-11 08:40:05 - service.job_service - INFO - Updated job bf68fbfd-8d1d-40b1-aab9-19078ca05ccd duration to 2868ms
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - UPDATE users SET current_rpm=?, current_tpm=? WHERE users.client_id = ?
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - [cached since 1.097e+06s ago] (2, 1057, 'd21db873-2dfc-44af-b8ec-50b71fff6460')
+2025-11-11 08:40:05 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:48:22 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:48:22 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers
+2025-11-11 08:48:22 - sqlalchemy.engine.Engine - INFO - [cached since 9.178e+05s ago] ()
+2025-11-11 08:48:22 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.provider_id AS provider_models_provider_id, provider_models.id AS provider_models_id, provider_models.model_name AS provider_models_model_name, provider_models.model_id AS provider_models_model_id, provider_models.is_active AS provider_models_is_active, provider_models.created_at AS provider_models_created_at 
+FROM provider_models 
+WHERE provider_models.provider_id IN (?, ?, ?)
+2025-11-11 08:48:22 - sqlalchemy.engine.Engine - INFO - [cached since 9.178e+05s ago] ('7b2d5f2f-eea9-4468-ba14-9a595f1dd39e', 'c55a7570-8bbe-4d7e-80ed-30ef15681ed8', '0623f471-af5f-42d6-9d56-ee5d0b5693ed')
+2025-11-11 08:48:22 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:48:25 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:48:25 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.id = ?
+2025-11-11 08:48:25 - sqlalchemy.engine.Engine - INFO - [generated in 0.00161s] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:48:25 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.provider_id AS provider_models_provider_id, provider_models.id AS provider_models_id, provider_models.model_name AS provider_models_model_name, provider_models.model_id AS provider_models_model_id, provider_models.is_active AS provider_models_is_active, provider_models.created_at AS provider_models_created_at 
+FROM provider_models 
+WHERE provider_models.provider_id IN (?)
+2025-11-11 08:48:25 - sqlalchemy.engine.Engine - INFO - [cached since 9.178e+05s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:48:25 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:48:34 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:48:34 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.id = ?
+2025-11-11 08:48:34 - sqlalchemy.engine.Engine - INFO - [cached since 10.56s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:48:35 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.provider_id AS provider_models_provider_id, provider_models.id AS provider_models_id, provider_models.model_name AS provider_models_model_name, provider_models.model_id AS provider_models_model_id, provider_models.is_active AS provider_models_is_active, provider_models.created_at AS provider_models_created_at 
+FROM provider_models 
+WHERE provider_models.provider_id IN (?)
+2025-11-11 08:48:35 - sqlalchemy.engine.Engine - INFO - [cached since 9.178e+05s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:48:35 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.provider_id = ?
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - [generated in 0.00067s] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - [generated in 0.00056s] ('b549f7c6-5f76-4af6-b49a-c75212388eac',)
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - UPDATE provider_models SET is_active=? WHERE provider_models.id = ?
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - [generated in 0.00068s] (0, 'b549f7c6-5f76-4af6-b49a-c75212388eac')
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - [generated in 0.00039s] ('b549f7c6-5f76-4af6-b49a-c75212388eac',)
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.id = ?
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - [cached since 60.84s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.provider_id AS provider_models_provider_id, provider_models.id AS provider_models_id, provider_models.model_name AS provider_models_model_name, provider_models.model_id AS provider_models_model_id, provider_models.is_active AS provider_models_is_active, provider_models.created_at AS provider_models_created_at 
+FROM provider_models 
+WHERE provider_models.provider_id IN (?)
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - [cached since 9.179e+05s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:20 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:21 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:21 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.id = ?
+2025-11-11 08:49:21 - sqlalchemy.engine.Engine - INFO - [cached since 61.08s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:21 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.provider_id AS provider_models_provider_id, provider_models.id AS provider_models_id, provider_models.model_name AS provider_models_model_name, provider_models.model_id AS provider_models_model_id, provider_models.is_active AS provider_models_is_active, provider_models.created_at AS provider_models_created_at 
+FROM provider_models 
+WHERE provider_models.provider_id IN (?)
+2025-11-11 08:49:21 - sqlalchemy.engine.Engine - INFO - [cached since 9.179e+05s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:21 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:29 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:29 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.provider_id = ?
+2025-11-11 08:49:29 - sqlalchemy.engine.Engine - INFO - [cached since 9.837s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:29 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:49:29 - sqlalchemy.engine.Engine - INFO - [cached since 9.835s ago] ('cf4a308a-3de8-4ae9-bcba-21cf4b89c84d',)
+2025-11-11 08:49:29 - sqlalchemy.engine.Engine - INFO - UPDATE provider_models SET is_active=? WHERE provider_models.id = ?
+2025-11-11 08:49:29 - sqlalchemy.engine.Engine - INFO - [cached since 9.83s ago] (0, 'cf4a308a-3de8-4ae9-bcba-21cf4b89c84d')
+2025-11-11 08:49:29 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:49:29 - sqlalchemy.engine.Engine - INFO - [cached since 9.827s ago] ('cf4a308a-3de8-4ae9-bcba-21cf4b89c84d',)
+2025-11-11 08:49:29 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:32 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:32 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.id = ?
+2025-11-11 08:49:32 - sqlalchemy.engine.Engine - INFO - [cached since 74.05s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:32 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.provider_id AS provider_models_provider_id, provider_models.id AS provider_models_id, provider_models.model_name AS provider_models_model_name, provider_models.model_id AS provider_models_model_id, provider_models.is_active AS provider_models_is_active, provider_models.created_at AS provider_models_created_at 
+FROM provider_models 
+WHERE provider_models.provider_id IN (?)
+2025-11-11 08:49:32 - sqlalchemy.engine.Engine - INFO - [cached since 9.179e+05s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:33 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:33 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:33 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.id = ?
+2025-11-11 08:49:33 - sqlalchemy.engine.Engine - INFO - [cached since 74.31s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:33 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.provider_id AS provider_models_provider_id, provider_models.id AS provider_models_id, provider_models.model_name AS provider_models_model_name, provider_models.model_id AS provider_models_model_id, provider_models.is_active AS provider_models_is_active, provider_models.created_at AS provider_models_created_at 
+FROM provider_models 
+WHERE provider_models.provider_id IN (?)
+2025-11-11 08:49:33 - sqlalchemy.engine.Engine - INFO - [cached since 9.179e+05s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:33 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:36 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:36 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.provider_id = ?
+2025-11-11 08:49:36 - sqlalchemy.engine.Engine - INFO - [cached since 17.74s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:36 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:49:36 - sqlalchemy.engine.Engine - INFO - [cached since 17.73s ago] ('07b780aa-ec08-4868-992b-a3f38151e1e0',)
+2025-11-11 08:49:36 - sqlalchemy.engine.Engine - INFO - UPDATE provider_models SET is_active=? WHERE provider_models.id = ?
+2025-11-11 08:49:36 - sqlalchemy.engine.Engine - INFO - [cached since 17.73s ago] (0, '07b780aa-ec08-4868-992b-a3f38151e1e0')
+2025-11-11 08:49:36 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:49:36 - sqlalchemy.engine.Engine - INFO - [cached since 17.73s ago] ('07b780aa-ec08-4868-992b-a3f38151e1e0',)
+2025-11-11 08:49:36 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:42 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:42 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.provider_id = ?
+2025-11-11 08:49:42 - sqlalchemy.engine.Engine - INFO - [cached since 24.29s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:42 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:49:42 - sqlalchemy.engine.Engine - INFO - [cached since 24.28s ago] ('322d130f-fa00-4645-a5c9-b3102778fcbb',)
+2025-11-11 08:49:42 - sqlalchemy.engine.Engine - INFO - UPDATE provider_models SET is_active=? WHERE provider_models.id = ?
+2025-11-11 08:49:42 - sqlalchemy.engine.Engine - INFO - [cached since 24.28s ago] (0, '322d130f-fa00-4645-a5c9-b3102778fcbb')
+2025-11-11 08:49:42 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:49:42 - sqlalchemy.engine.Engine - INFO - [cached since 24.28s ago] ('322d130f-fa00-4645-a5c9-b3102778fcbb',)
+2025-11-11 08:49:42 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.id = ?
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - [cached since 85.12s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.provider_id AS provider_models_provider_id, provider_models.id AS provider_models_id, provider_models.model_name AS provider_models_model_name, provider_models.model_id AS provider_models_model_id, provider_models.is_active AS provider_models_is_active, provider_models.created_at AS provider_models_created_at 
+FROM provider_models 
+WHERE provider_models.provider_id IN (?)
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - [cached since 9.179e+05s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.id = ?
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - [cached since 85.36s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.provider_id AS provider_models_provider_id, provider_models.id AS provider_models_id, provider_models.model_name AS provider_models_model_name, provider_models.model_id AS provider_models_model_id, provider_models.is_active AS provider_models_is_active, provider_models.created_at AS provider_models_created_at 
+FROM provider_models 
+WHERE provider_models.provider_id IN (?)
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - [cached since 9.179e+05s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:43 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:49 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:49 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.provider_id = ?
+2025-11-11 08:49:49 - sqlalchemy.engine.Engine - INFO - [cached since 31.11s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:49 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:49:49 - sqlalchemy.engine.Engine - INFO - [cached since 31.11s ago] ('b849777a-b19e-41a9-a3d4-2c82c724853a',)
+2025-11-11 08:49:49 - sqlalchemy.engine.Engine - INFO - UPDATE provider_models SET is_active=? WHERE provider_models.id = ?
+2025-11-11 08:49:49 - sqlalchemy.engine.Engine - INFO - [cached since 31.1s ago] (0, 'b849777a-b19e-41a9-a3d4-2c82c724853a')
+2025-11-11 08:49:49 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:49:49 - sqlalchemy.engine.Engine - INFO - [cached since 31.1s ago] ('b849777a-b19e-41a9-a3d4-2c82c724853a',)
+2025-11-11 08:49:49 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:52 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:52 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.id = ?
+2025-11-11 08:49:52 - sqlalchemy.engine.Engine - INFO - [cached since 95.97s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:52 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.provider_id AS provider_models_provider_id, provider_models.id AS provider_models_id, provider_models.model_name AS provider_models_model_name, provider_models.model_id AS provider_models_model_id, provider_models.is_active AS provider_models_is_active, provider_models.created_at AS provider_models_created_at 
+FROM provider_models 
+WHERE provider_models.provider_id IN (?)
+2025-11-11 08:49:52 - sqlalchemy.engine.Engine - INFO - [cached since 9.179e+05s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:52 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:49:53 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:49:53 - sqlalchemy.engine.Engine - INFO - SELECT providers.id, providers.name, providers.provider_type, providers.api_key, providers.api_url, providers.organization_id, providers.is_active, providers.created_at, providers.updated_at 
+FROM providers 
+WHERE providers.id = ?
+2025-11-11 08:49:53 - sqlalchemy.engine.Engine - INFO - [cached since 96.22s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:53 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.provider_id AS provider_models_provider_id, provider_models.id AS provider_models_id, provider_models.model_name AS provider_models_model_name, provider_models.model_id AS provider_models_model_id, provider_models.is_active AS provider_models_is_active, provider_models.created_at AS provider_models_created_at 
+FROM provider_models 
+WHERE provider_models.provider_id IN (?)
+2025-11-11 08:49:53 - sqlalchemy.engine.Engine - INFO - [cached since 9.179e+05s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:49:53 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 08:50:03 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-11-11 08:50:03 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.provider_id = ?
+2025-11-11 08:50:03 - sqlalchemy.engine.Engine - INFO - [cached since 46.52s ago] ('c55a7570-8bbe-4d7e-80ed-30ef15681ed8',)
+2025-11-11 08:50:03 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:50:03 - sqlalchemy.engine.Engine - INFO - [cached since 46.51s ago] ('80c0308d-4334-447d-a929-e7872cdb9384',)
+2025-11-11 08:50:03 - sqlalchemy.engine.Engine - INFO - UPDATE provider_models SET is_active=? WHERE provider_models.id = ?
+2025-11-11 08:50:03 - sqlalchemy.engine.Engine - INFO - [cached since 46.51s ago] (0, '80c0308d-4334-447d-a929-e7872cdb9384')
+2025-11-11 08:50:03 - sqlalchemy.engine.Engine - INFO - SELECT provider_models.id, provider_models.provider_id, provider_models.model_name, provider_models.model_id, provider_models.is_active, provider_models.created_at 
+FROM provider_models 
+WHERE provider_models.id = ?
+2025-11-11 08:50:03 - sqlalchemy.engine.Engine - INFO - [cached since 46.51s ago] ('80c0308d-4334-447d-a929-e7872cdb9384',)
+2025-11-11 08:50:03 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-11-11 09:43:31 - main - INFO - Shutting down KIGate API...
+2025-11-11 09:43:31 - main - INFO - KIGate API shutdown complete

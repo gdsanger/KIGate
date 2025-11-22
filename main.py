@@ -21,6 +21,7 @@ from model.aiapiresult import aiapiresult
 from model.agent_execution import AgentExecutionRequest, AgentExecutionResponse
 from model.pdf_agent_execution import PDFAgentExecutionRequest, PDFAgentExecutionResponse
 from model.docx_agent_execution import DocxAgentExecutionRequest, DocxAgentExecutionResponse
+from model.image_agent_execution import ImageAgentExecutionRequest, ImageAgentExecutionResponse
 from model.job import JobCreate
 from model.github_issue import GitHubIssueRequest, GitHubIssueResponse
 from model.ai_audit_log import AIAuditLogCreate
@@ -31,12 +32,14 @@ from service.github_service import GitHubService
 from service.github_issue_processor import GitHubIssueProcessor
 from service.pdf_service import PDFService
 from service.docx_service import DocxService
+from service.image_service import ImageService
 from service.settings_service import SettingsService
 from service.ai_audit_log_service import AIAuditLogService
 from service.cache_service import CacheService
 from controller.api_openai import process_openai_request
 from controller.api_gemini import process_gemini_request
 from controller.api_claude import process_claude_request
+from controller.api_ollama import process_ollama_vision_request
 from logging_config import LoggingConfig
 from utils.request_utils import get_client_ip, extract_auth_token
 from utils.token_counter import count_tokens
@@ -1132,6 +1135,210 @@ Format your response as a well-structured report."""
     except Exception as e:
         # Fallback to simple concatenation on any error
         return DocxService.merge_chunk_results(chunk_results, agent.name)
+
+
+@app.post("/agent/execute-image", response_model=ImageAgentExecutionResponse)
+async def execute_agent_image(
+    http_request: Request,
+    request: str = Form(...),
+    image_file: UploadFile = File(...),
+    current_user: User = Depends(authenticate_user_by_token)
+):
+    """
+    Execute an agent with an image file for OCR text extraction
+    
+    This endpoint:
+    1. Parses JSON request data (agent_name, provider, model, user_id, parameters)
+    2. Loads the agent configuration from YAML file
+    3. Validates the uploaded image file (PNG, JPEG, WEBP)
+    4. Converts the image to base64 for vision model processing
+    5. Sends the image to Ollama vision model (qwen3-vl:8b)
+    6. Returns extracted text
+    
+    Request format: multipart/form-data with:
+    - request: JSON string containing agent_name, provider (optional), model (optional), user_id, parameters (optional)
+    - image_file: Image file to process (PNG, JPEG, WEBP)
+    
+    Response format: JSON with success, text, agent, provider, model, job_id, image_filename
+    """
+    try:
+        # Extract client IP
+        client_ip = get_client_ip(http_request)
+        
+        # Parse JSON request data
+        try:
+            request_data = json.loads(request)
+        except json.JSONDecodeError as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid JSON in request field: {str(e)}"
+            )
+        
+        try:
+            image_request = ImageAgentExecutionRequest(**request_data)
+        except ValidationError as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid request data: {str(e)}"
+            )
+        
+        # Extract fields from parsed request
+        agent_name = image_request.agent_name
+        user_id = image_request.user_id
+        parameters = image_request.parameters
+        
+        # Validate image file type
+        ImageService.validate_image_type(image_file.content_type, image_file.filename)
+        
+        # Load agent configuration from YAML
+        agent = await AgentService.get_agent_by_name(agent_name)
+        if not agent:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Agent '{agent_name}' not found"
+            )
+        
+        # Use agent's provider and model configuration
+        provider = agent.provider
+        model = agent.model
+        
+        # Verify that the agent uses Ollama provider for vision models
+        if provider.lower() != "ollama":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Image processing requires Ollama provider with vision model. Agent uses '{provider}'."
+            )
+        
+        # Convert image to base64
+        image_base64 = await ImageService.convert_image_to_base64(image_file)
+        
+        # Create job for tracking
+        async for db in get_async_session():
+            # Create job with minimal token count estimate (images don't have token count)
+            job_data = JobCreate(
+                name=f"{agent_name}-image",
+                user_id=user_id,
+                provider=provider,
+                model=model,
+                status="created",
+                client_ip=client_ip,
+                token_count=0  # Vision models token counting is different
+            )
+            
+            job = await JobService.create_job(db, job_data)
+            job_id = job.id
+            
+            # Track start time for duration calculation
+            start_time = time.time()
+            
+            # Prepare AI request by combining agent configuration with image
+            # Apply parameters to the agent task if provided
+            processed_task = agent.task
+            if parameters:
+                # Process parameters into the task using efficient string joining
+                param_lines = [f"{key}: {value}" for key, value in parameters.items()]
+                param_context = "\n".join(param_lines)
+                processed_task = f"{agent.task}\n\nParameters:\n{param_context}"
+            
+            # Sanitize filename to prevent prompt injection
+            safe_filename = "".join(c for c in image_file.filename if c.isalnum() or c in "._-")[:50]
+            combined_message = f"{agent.role}\n\n{processed_task}\n\nImage filename: {safe_filename}"
+            
+            ai_request = aiapirequest(
+                job_id=job.id,
+                user_id=user_id,
+                model=model,
+                message=combined_message
+            )
+            
+            # Update job status to processing
+            await JobService.update_job_status(db, job.id, "processing")
+            await db.commit()
+            
+            try:
+                # Get Ollama API URL from settings
+                ollama_url = await SettingsService.get_setting(db, "OLLAMA_API_URL")
+                
+                # Send request to Ollama vision model
+                ai_result = await process_ollama_vision_request(
+                    ai_request, 
+                    image_base64, 
+                    api_url=ollama_url
+                )
+                
+                # Record the request and token usage for rate limiting
+                from service.rate_limit_service import RateLimitService
+                await RateLimitService.record_request(db, current_user, ai_result.tokens_used)
+                
+                # Log token usage to job
+                if ai_result.input_tokens > 0:
+                    await JobService.update_job_token_count(db, job.id, ai_result.input_tokens)
+                if ai_result.output_tokens > 0:
+                    await JobService.update_job_output_token_count(db, job.id, ai_result.output_tokens)
+                
+                # Calculate duration in milliseconds
+                duration_ms = int((time.time() - start_time) * 1000)
+                
+                if ai_result.success:
+                    await JobService.update_job_status(db, job.id, "completed")
+                    await JobService.update_job_duration(db, job.id, duration_ms)
+                    await db.commit()
+                    
+                    return ImageAgentExecutionResponse(
+                        success=True,
+                        text=ai_result.content,
+                        agent=agent_name,
+                        provider=provider,
+                        model=model,
+                        job_id=job_id,
+                        image_filename=image_file.filename
+                    )
+                else:
+                    error_msg = ai_result.error_message or "AI processing failed"
+                    await JobService.update_job_status(db, job.id, "failed")
+                    await JobService.update_job_duration(db, job.id, duration_ms)
+                    await db.commit()
+                    
+                    return ImageAgentExecutionResponse(
+                        success=False,
+                        text=error_msg,
+                        agent=agent_name,
+                        provider=provider,
+                        model=model,
+                        job_id=job_id,
+                        image_filename=image_file.filename
+                    )
+                
+            except Exception as ai_error:
+                # Calculate duration even on error
+                duration_ms = int((time.time() - start_time) * 1000)
+                error_msg = f"Error processing image: {str(ai_error)}"
+                
+                await JobService.update_job_status(db, job.id, "failed")
+                await JobService.update_job_duration(db, job.id, duration_ms)
+                await db.commit()
+                
+                return ImageAgentExecutionResponse(
+                    success=False,
+                    text=error_msg,
+                    agent=agent_name,
+                    provider=provider,
+                    model=model,
+                    job_id=job_id,
+                    image_filename=image_file.filename
+                )
+            
+            break  # Exit the async for loop
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Handle unexpected errors
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
 
 
 if __name__ == "__main__":

@@ -124,7 +124,8 @@ class TestImageAgentExecutionModels:
     
     def test_image_agent_execution_request_invalid_agent_name(self):
         """Test validation with invalid agent name"""
-        with pytest.raises(Exception):  # Pydantic ValidationError
+        from pydantic import ValidationError
+        with pytest.raises(ValidationError):
             ImageAgentExecutionRequest(
                 agent_name="",  # Empty string should fail
                 user_id="test-user-123"
@@ -132,7 +133,8 @@ class TestImageAgentExecutionModels:
     
     def test_image_agent_execution_request_invalid_user_id(self):
         """Test validation with invalid user ID"""
-        with pytest.raises(Exception):  # Pydantic ValidationError
+        from pydantic import ValidationError
+        with pytest.raises(ValidationError):
             ImageAgentExecutionRequest(
                 agent_name="test-agent",
                 user_id=""  # Empty string should fail

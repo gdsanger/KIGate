@@ -1187,6 +1187,9 @@ async def execute_agent_image(
         user_id = image_request.user_id
         parameters = image_request.parameters
         
+        # Note: User-provided provider and model (if any) will be ignored.
+        # Always use the provider and model from the agent configuration.
+        
         # Validate image file type
         ImageService.validate_image_type(image_file.content_type, image_file.filename)
         
@@ -1240,8 +1243,9 @@ async def execute_agent_image(
                 param_context = "\n".join(param_lines)
                 processed_task = f"{agent.task}\n\nParameters:\n{param_context}"
             
-            # Sanitize filename to prevent prompt injection
-            safe_filename = "".join(c for c in image_file.filename if c.isalnum() or c in "._-")[:50]
+            # Sanitize filename to prevent prompt injection while preserving readability
+            import re
+            safe_filename = re.sub(r'[^\w\s.-]', '', image_file.filename).strip()[:50]
             combined_message = f"{agent.role}\n\n{processed_task}\n\nImage filename: {safe_filename}"
             
             ai_request = aiapirequest(

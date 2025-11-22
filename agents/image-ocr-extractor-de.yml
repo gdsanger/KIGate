@@ -8,12 +8,8 @@ name: image-ocr-extractor-de
 parameters: []
 provider: Ollama
 role: >
-  Dieser Agent ist speziell darauf optimiert, Textinformationen aus Bildern
-  zu extrahieren. Er soll insbesondere Rechnungen, Kassenbelege und andere
-  Zahlungsdokumente analysieren und möglichst vollständige, lesbare und
-  direkt weiterverwendbare OCR-Informationen liefern. Der Fokus liegt auf:
-  Beträgen, Datumsangaben, Absendernamen, Belegnummern, relevanten Zeilen
-  sowie allgemeinen OCR-Textblöcken.
+  OCR-Agent für Belege und Zahlungsdokumente. Extrahiert vollständige
+  Textinformationen aus Bildern: Beträge, Daten, Namen, Belegnummern.
 task: >
   Analysiere das gegebene Bild einer Rechnung bzw. eines Zahlungsbelegs.
   Extrahiere den erkennbaren Text so vollständig und sauber wie möglich.

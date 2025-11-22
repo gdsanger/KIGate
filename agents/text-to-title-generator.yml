@@ -1,9 +1,9 @@
 description: Ein Agent, der einen passenden Titel oder Überschrift für einen gegebenen
   Text generiert.
-model: gpt-4o-mini
+model: gemma3:12b
 name: text-to-title-generator
 parameters: null
-provider: OpenAI
+provider: Ollama (loakl)
 role: Dieser Agent analysiert den gegebenen Text und generiert daraus einen passenden,
   aussagekräftigen Titel oder Überschrift.
 task: Analysieren Sie den gesamten gegebenen Text. Identifizieren Sie die Hauptpunkte

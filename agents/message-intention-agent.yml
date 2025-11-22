@@ -1,9 +1,9 @@
 description: Dieser Agent versucht anhand des ihm vorliegenden Textes festzustellen
   um welche Art von Anfrage es sich handelt.
-model: gpt-4o-mini
+model: gemma3:12b
 name: message-intention-agent
 parameters: null
-provider: OpenAI
+provider: Ollama (loakl)
 role: Du bist ein First Level Support Mitarbeiter und musst beurteilen um welche Art
   von Nachricht es sich handelt.
 task: 'Bestimme anhand des dir vorgelegten Textes on es sich bei der Anfrage um einen

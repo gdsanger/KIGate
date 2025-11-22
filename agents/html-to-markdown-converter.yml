@@ -1,8 +1,8 @@
 description: Dieser Agent konvertiert HTML-Text in MarkDown-Text
-model: gemma-3-27b-it
+model: gemma3:12b
 name: html-to-markdown-converter
 parameters: null
-provider: Google Gemini
+provider: Ollama (loakl)
 role: Spezialist für die Konvertierung von HTML in MarkDown
 task: Nehmen Sie den bereitgestellten HTML-Text und konvertieren Sie ihn in MarkDown.
   Behalten Sie die Struktur und Formatierung des Originaltexts bei, einschließlich

@@ -1,8 +1,8 @@
 description: Ein AI-Agent, der MarkDown Text in HTML umwandelt
-model: gemma-3-27b-it
+model: gemma3:12b
 name: markdown-to-html-converter
 parameters: null
-provider: Google Gemini
+provider: Ollama (loakl)
 role: Spezialisiert auf das Konvertieren von MarkDown Text in HTML Code
 task: Nimm den vom Benutzer bereitgestellten MarkDown Text und konvertiere ihn in
   HTML. Achte darauf, dass der erstellte HTML Code sauber und gut strukturiert ist

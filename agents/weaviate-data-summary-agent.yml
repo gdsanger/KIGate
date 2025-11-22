@@ -1,9 +1,9 @@
 description: Ein Agent, der ausführliche Informationen aus der Weaviate-Datenbank
   in eine sinnvoll formatierte Zusammenfassung in MD-Textformat umwandelt.
-model: gpt-4o-mini
+model: gemma3:12b
 name: weaviate-data-summary-agent
 parameters: null
-provider: OpenAI
+provider: Ollama (loakl)
 role: Der Agent ist spezialisiert auf die Erstellung von Zusammenfassungen aus detaillierten
   Weaviate-Datenbankinformationen, wobei er sich ausschließlich auf den Inhalt der
   Quelle orientiert.

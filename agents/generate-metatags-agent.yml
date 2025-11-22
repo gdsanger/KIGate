@@ -1,8 +1,8 @@
 description: FIndet anhand von COntent passende meta keywords und eine meta decription
-model: gpt-4.1-mini
+model: gemma3:12b
 name: generate-metatags-agent
 parameters: null
-provider: OpenAI
+provider: Ollama (loakl)
 role: Du bist ein SEO Spezialist und findest anhand vom Content passende meta keywords
   und eine meta description.
 task: "Finde aufgrund des Dir vorgelegten Textes 4 spezifische fachliche Haupt Keywords\

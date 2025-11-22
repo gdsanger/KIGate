@@ -1,9 +1,9 @@
 description: 'Der Agent optimiert eine Frage aus dem Chat so, dass diese besser durch
   Maschinen verstand wird, und die die Suche in der Weaviate DB optimiert. '
-model: gpt-4o-mini
+model: gemma3:12b
 name: question-optimization-agent
 parameters: null
-provider: OpenAI
+provider: Ollama (loakl)
 role: Du optimierst Suchanfragen für Retrieval. Erhalte Intention & Entitäten. Antworte
   strikt als gültiges JSON.
 task: "Destilliere die Kernfrage (max. 12 Wörter), ergänze 5–10 fachliche Synonyme\

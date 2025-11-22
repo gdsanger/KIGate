@@ -1,13 +1,13 @@
 description: Ein Agent, der 5 wesentliche Schlagwörter aus einem gegebenen Text extrahiert,
   unter Berücksichtigung der Fokus und Aussage des Textes.
-model: gpt-4o-mini
+model: gemma3:12b
 name: text-keyword-extractor-de
 parameters:
 - output_format:
     default: text
     description: Gewünschtes Ausgabeformat
     type: string
-provider: OpenAI
+provider: Ollama (loakl)
 role: Dieser Agent ist spezialisiert auf die Analyse und Extraktion von wesentlichen
   Schlagwörtern aus Texten, wobei alltägliche Wörter und Formulierungen vernachlässigt
   werden.

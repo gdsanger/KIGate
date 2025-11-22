@@ -6,7 +6,7 @@ The main task of the controller is to send requests to the Ollama API and receiv
 """
 
 import logging
-from typing import Optional
+from typing import Optional, List
 from ollama import AsyncClient
 
 from model.aiapirequest import aiapirequest
@@ -165,6 +165,112 @@ class OllamaController:
                 success=False,
                 error_message=error_msg
             )
+    
+    async def process_vision_request(self, request: aiapirequest, image_base64: str) -> aiapiresult:
+        """
+        Process an AI API request with an image for vision models
+        
+        Args:
+            request: The aiapirequest object containing job_id, user_id, model, and message
+            image_base64: Base64 encoded image data
+            
+        Returns:
+            aiapiresult: The result containing response content, success status, and any error messages
+        """
+        # Capture job_id and user_id at entry to prevent any mutation issues during async processing
+        job_id = request.job_id
+        user_id = request.user_id
+        
+        logger.info(f"Processing Ollama vision request for job_id: {job_id}, user_id: {user_id}")
+        
+        # Check if Ollama client is initialized
+        if not self.client:
+            error_msg = "Ollama API URL is not configured"
+            logger.error(f"Configuration error for job_id {job_id}: {error_msg}")
+            
+            return aiapiresult(
+                job_id=job_id,
+                user_id=user_id,
+                content="",
+                success=False,
+                error_message=error_msg
+            )
+        
+        try:
+            # Validate input parameters
+            content = request.message if request.message else request.prompt
+            
+            if not content or not content.strip():
+                raise ValueError("Content cannot be empty")
+            
+            if not request.model or not request.model.strip():
+                raise ValueError("Model cannot be empty")
+            
+            if not image_base64:
+                raise ValueError("Image data cannot be empty")
+            
+            # Prepare the message with image for vision model
+            # Ollama vision models accept images as part of the message content
+            messages = [
+                {
+                    "role": "user",
+                    "content": content,
+                    "images": [image_base64]
+                }
+            ]
+            
+            # Make API call to Ollama with vision support
+            logger.debug(f"Sending vision request to Ollama API with model: {request.model}")
+            
+            response = await self.client.chat(
+                model=request.model,
+                messages=messages,
+                stream=False
+            )
+            
+            # Extract content from response
+            if response and hasattr(response, 'message') and response.message:
+                content = response.message.content if hasattr(response.message, 'content') else str(response.message)
+                if content is None:
+                    content = ""
+                
+                # Ollama doesn't provide token usage in the standard response
+                # Set to 0 for consistency with other providers
+                logger.info(f"Successfully received vision response for job_id: {job_id}")
+                
+                return aiapiresult(
+                    job_id=job_id,
+                    user_id=user_id,
+                    content=content,
+                    success=True,
+                    error_message=None,
+                    tokens_used=0,
+                    input_tokens=0,
+                    output_tokens=0
+                )
+            else:
+                error_msg = "No response message returned from Ollama API"
+                logger.error(f"Error for job_id {job_id}: {error_msg}")
+                
+                return aiapiresult(
+                    job_id=job_id,
+                    user_id=user_id,
+                    content="",
+                    success=False,
+                    error_message=error_msg
+                )
+                
+        except Exception as e:
+            error_msg = f"Unexpected error: {str(e)}"
+            logger.error(f"Unexpected error for job_id {job_id}: {error_msg}")
+            
+            return aiapiresult(
+                job_id=job_id,
+                user_id=user_id,
+                content="",
+                success=False,
+                error_message=error_msg
+            )
 
 
 # Singleton instance
@@ -205,3 +311,19 @@ async def process_ollama_request(request: aiapirequest, api_url: Optional[str] =
     """
     controller = get_ollama_controller(api_url)
     return await controller.process_request(request)
+
+
+async def process_ollama_vision_request(request: aiapirequest, image_base64: str, api_url: Optional[str] = None) -> aiapiresult:
+    """
+    Convenience function to process Ollama vision requests with images
+    
+    Args:
+        request: The aiapirequest object
+        image_base64: Base64 encoded image data
+        api_url: Optional API URL to use (e.g., http://localhost:11434)
+        
+    Returns:
+        aiapiresult: The processed result
+    """
+    controller = get_ollama_controller(api_url)
+    return await controller.process_vision_request(request, image_base64)
